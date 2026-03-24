@@ -79,7 +79,10 @@ def check_user_limit():
 # -------------------------------
 st.subheader("1. API 설정")
 
-api_key = st.text_input("OpenAI API Key 입력", type="password")
+import os
+
+api_key = st.secrets["OPENAI_API_KEY"]
+init_client(api_key)
 
 if api_key:
     try:
@@ -103,13 +106,33 @@ with st.expander("사용 방법 보기"):
 # -------------------------------
 st.markdown("## STEP 1. 입력")
 
-st.markdown("### 자유 입력 (AI 자동 분석)")
-
-free_input = st.text_area(
-    "그냥 편하게 입력하세요",
-    height=100,
-    placeholder="예: 스마트시티 사업 관련 보도자료 써줘"
+input_mode = st.radio(
+    "입력 방식 선택",
+    ["자유 입력", "육하원칙 입력"]
 )
+
+if input_mode == "자유 입력":
+
+    st.markdown("### 자유 입력 (AI 자동 분석)")
+
+    free_input = st.text_area(
+        "그냥 편하게 입력하세요",
+        height=100,
+        placeholder=
+        "예: 스마트시티 사업 관련 보도자료 써줘"
+    )
+
+if input_mode == "육하원칙 입력":
+
+    who = st.text_input("누가")
+    what = st.text_input("무엇을")
+    why = st.text_input("왜")
+    when = st.text_input("언제")
+    where = st.text_input("어디서")
+    how = st.text_input("어떻게")
+
+    st.session_state.situation_input = f"{when}, {where}에서 {who}가 {what}을 수행하는 상황"
+    st.session_state.goal_input = f"{why} 목적을 달성하기 위해 {how} 방식으로 결과 생성"
 
 if st.button("자동 분석"):
     if free_input.strip():
@@ -120,10 +143,17 @@ if st.button("자동 분석"):
                 st.session_state.situation_input = situation_part
                 st.session_state.goal_input = goal_part
 
-                st.success("자동 입력 완료")
+                # 👉 추가: 평가 실행
+                eval_result, _ = evaluate_prompt(free_input, "전문가형")
+                st.session_state.auto_eval = eval_result
+
+                st.success("자동 입력 + 평가 완료")
 
             except Exception as e:
                 st.error(f"분석 오류: {e}")
+            if "auto_eval" in st.session_state:
+                st.info("자동 분석 평가 결과")
+                st.write(st.session_state.auto_eval)
 
 st.markdown("### 빠른 템플릿 선택")
 
@@ -171,6 +201,12 @@ with col7:
         st.session_state.situation_input = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
         st.session_state.goal_input = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
 
+extra_input = st.text_area(
+    "추가 요구사항",
+    height=80,
+    placeholder="예: 간부 보고용, 1페이지 요약, 쉬운 표현, 표 없이 문장형으로 작성"
+)
+
 situation = st.text_area(
     "상황",
     height=100,
@@ -183,7 +219,23 @@ goal = st.text_area(
     key="goal_input"
 )
 
-style = st.selectbox("스타일 선택", ["전문가형", "간결형", "초간결형"])
+style = st.radio(
+    "스타일 선택",
+    ["전문가형", "간결형", "초간결형"]
+)
+
+# 설명
+if style == "전문가형":
+    st.caption("구조 + 설명 포함 (학습용)")
+    st.code("Role / Goal / Instructions / Format 구조 + 설명")
+
+elif style == "간결형":
+    st.caption("실무용 문장형")
+    st.code("보고서를 작성하되 핵심만 간결하게 정리")
+
+elif style == "초간결형":
+    st.caption("최소 문장")
+    st.code("보고서 작성. 핵심만.")
 
 st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
 
@@ -208,7 +260,7 @@ if st.button("프롬프트 생성"):
                 try:
                     result, tokens = generate_prompt(
                                                         st.session_state.situation_input,
-                                                        st.session_state.goal_input,
+                                                        st.session_state.goal_input + (f" / {extra_input}" if extra_input else ""),
                                                         style
                                                     )
 
@@ -243,7 +295,8 @@ with col1:
 with col2:
     refine_clicked = st.button("프롬프트 개선")
 
-if eval_clicked:
+if eval_clicked and "eval_running" not in st.session_state:
+    st.session_state.eval_running = True
     if not st.session_state.last_prompt:
         st.warning("먼저 프롬프트를 생성하세요.")
 
@@ -271,6 +324,7 @@ if eval_clicked:
 
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
+    del st.session_state.eval_running
         
 
 # -------------------------------
@@ -280,7 +334,8 @@ st.subheader("4. 프롬프트 개선")
 
 feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 마케팅 느낌으로 등")
 
-if refine_clicked:
+if refine_clicked and "refine_running" not in st.session_state:
+    st.session_state.refine_running = True
     if not st.session_state.last_prompt:
         st.warning("먼저 프롬프트를 생성하세요.")
 
@@ -314,6 +369,7 @@ if refine_clicked:
 
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
+    del st.session_state.refine_running
 
 # -------------------------------
 # 히스토리 & 비교

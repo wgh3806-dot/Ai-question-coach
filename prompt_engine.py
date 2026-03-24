@@ -18,9 +18,9 @@ def ensure_client():
 
 def get_style_instruction(style):
     if style == "간결형":
-        return "핵심만 간결하게 작성하라."
+        return "구조를 유지하되 자연스러운 문장형으로 간결하게 작성하라."
     elif style == "초간결형":
-        return "최소한의 문장으로 작성하라."
+        return "최소 문장으로 핵심만 전달하라. 불필요한 표현 금지."
     else:
         return "구조와 설명을 포함하여 작성하라."
 
@@ -40,7 +40,7 @@ def request_chat(system_prompt, user_input, max_tokens=500, model=DEFAULT_MODEL)
     content = response.choices[0].message.content
     total_tokens = response.usage.total_tokens if response.usage else 0
 
-    return request_chat(system_prompt, user_input, max_tokens=max_tokens)
+    return content, total_tokens
 
 def generate_prompt(situation, goal, style, max_tokens=500):
     style_instruction = get_style_instruction(style)
@@ -72,6 +72,8 @@ def generate_prompt(situation, goal, style, max_tokens=500):
 - 항상 완성형 결과 제공
 - {style_instruction}
 """
+    if style in ["간결형", "초간결형"]:
+        system_prompt += "\n구조를 유지하되 문장형으로 변환하라."
 
     user_input = f"""
 상황: {situation}
