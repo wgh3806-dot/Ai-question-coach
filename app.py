@@ -16,11 +16,13 @@ from data_manager import (
     get_today_usage
 )
 
+import json
+
 def copy_button(text, key):
-    safe_text = html.escape(text)
+    safe_text = json.dumps(text)
 
     st.components.v1.html(f"""
-        <button onclick="navigator.clipboard.writeText(`{safe_text}`)" 
+        <button onclick='navigator.clipboard.writeText({safe_text})'
         style="background-color:#4CAF50;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;">
         복사하기
         </button>
@@ -63,6 +65,12 @@ if "history" not in st.session_state:
 
 if "last_prompt" not in st.session_state:
     st.session_state.last_prompt = ""
+
+if "eval_result" not in st.session_state:
+    st.session_state.eval_result = ""
+
+if "refine_result" not in st.session_state:
+    st.session_state.refine_result = ""
 
 if "selected_template" not in st.session_state:
     st.session_state.selected_template = None
@@ -597,13 +605,18 @@ if st.button("프롬프트 생성"):
                     else:
                         template_type = st.session_state.selected_template  # 자동
 
-                    # 🔥 기존 generate_prompt 호출 교체
-                    result, tokens = generate_prompt(
+                    preview_text = build_question_preview(
+                        active_mode,
                         st.session_state.situation_input,
                         st.session_state.goal_input,
-                        style,
                         extra_input,
-                        template_type=template_type
+                        style
+                    )
+
+                    # 🔥 기존 generate_prompt 호출 교체
+                    result, tokens = generate_prompt(
+                        preview_text,
+                        style
                     )
 
                     add_usage(tokens)
@@ -616,33 +629,34 @@ if st.button("프롬프트 생성"):
 
                     st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
 
-                    st.markdown("### 생성 결과")
-
-                    with st.container():
-                        st.code(result, language="markdown")
-
-                        # ✅ 복사 버튼 (여기)
-                        copy_button(result, "copy_gen")
-
-                        st.markdown("### 🤖 AI로 바로 실행")
-
-                        col1, col2, col3, col4 = st.columns(4)
-
-                        with col1:
-                            st.link_button("ChatGPT 열기", "https://chat.openai.com")
-
-                        with col2:
-                            st.link_button("Gemini 열기", "https://gemini.google.com")
-
-                        with col3:
-                            st.link_button("Claude 열기", "https://claude.ai")
-
-                        with col4:
-                            st.link_button("Perplexity 열기", "https://www.perplexity.ai")
-
-                        st.caption("※ 프롬프트는 이미 복사되었습니다. 이동 후 붙여넣기 하세요.")
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
+
+                # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
+                if st.session_state.last_prompt:
+                    st.markdown("### 생성된 프롬프트")
+
+                    st.code(st.session_state.last_prompt, language="markdown")
+
+                    copy_button(st.session_state.last_prompt, "copy_gen_fixed")
+
+                    st.markdown("### 🤖 AI로 바로 실행")
+
+                    col1, col2, col3, col4 = st.columns(4)
+
+                    with col1:
+                        st.link_button("ChatGPT 열기", "https://chat.openai.com")
+
+                    with col2:
+                        st.link_button("Gemini 열기", "https://gemini.google.com")
+
+                    with col3:
+                        st.link_button("Claude 열기", "https://claude.ai")
+
+                    with col4:
+                        st.link_button("Perplexity 열기", "https://www.perplexity.ai")
+
+                    st.caption("※ 프롬프트를 복사해서 사용하세요.")
 
 # -------------------------------
 # 프롬프트 평가
@@ -653,6 +667,11 @@ col1, col2 = st.columns(2)
 
 with col1:
     eval_clicked = st.button("프롬프트 평가")
+
+if st.session_state.eval_result:
+    st.markdown("### 평가 결과")
+    st.write(st.session_state.eval_result)
+    copy_button(st.session_state.eval_result, "copy_eval_fixed")
 
 with col2:
     refine_clicked = st.button("프롬프트 개선")
@@ -680,9 +699,7 @@ if eval_clicked and "eval_running" not in st.session_state:
                     st.session_state.request_count += 1
 
                     with st.container():
-                        st.markdown("### 평가 결과")
-                        st.write(result)
-                        copy_button(result, "copy_eval")
+                        st.session_state.eval_result = result
 
                 except Exception as e:
                     st.error(f"오류 발생: {e}")

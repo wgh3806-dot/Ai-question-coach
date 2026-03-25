@@ -232,29 +232,24 @@ def build_expert_role(situation, goal, template_type=None):
 현장에서 바로 사용할 수 있는 수준으로 작성하라.
 """
 
-def generate_prompt(situation, goal, style, extra="", template_type=None, max_tokens=500):
-     # 🔥 핵심 추가 (이거 없으면 의미 없음)
-    if template_type is None:
-        template_type = detect_task_type(situation, goal)
+def generate_prompt(preview_text, style, max_tokens=700):
+
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
-    if template_type:
-        template_rule = get_template_rules(template_type)
-    else:
-        template_rule = generate_dynamic_expert(situation, goal)
-
-      # 🔥 전문가 역할 생성
-    expert_role = build_expert_role(situation, goal, template_type)
 
     system_prompt = f"""
 너는 생성형 AI 질문 코치 시스템이다.
 
-목적:
-사용자의 입력을 기반으로 "실제 결과물을 생성하는 프롬프트"를 만든다.
+목표:
+사용자가 바로 사용할 수 있는 "완성된 프롬프트"를 만든다.
 
 {reliability}
 
-{template_rule}
+[핵심 규칙]
+- 반드시 프롬프트만 생성
+- 절대 답변 생성 금지
+- 설명 금지
+- 구조 유지
 
 [프롬프트 구조]
 1. 역할 (Role)
@@ -262,39 +257,14 @@ def generate_prompt(situation, goal, style, extra="", template_type=None, max_to
 3. 조건 (Instructions)
 4. 출력 형식 (Format)
 
-[핵심 원칙 - 반드시 준수]
-- 프롬프트 설명 절대 금지
-- 결과물 생성이 목적이다
-- "이 프롬프트를 활용하여" 같은 문장 절대 금지
-- 반드시 실무에서 바로 사용할 수 있는 결과를 생성하도록 작성
-
-[출력 강제 규칙]
-- 결과물 외 불필요한 설명 절대 금지
-- 바로 결과부터 작성 시작
-- "다음은" 같은 문장 금지
-- 안내문, 설명문, 해설문 금지
-- 오직 결과를 생성하도록 지시할 것
-
-[템플릿 실행 규칙]
-- 선택된 템플릿 형식을 반드시 따르도록 강제할 것
-- 템플릿이 존재할 경우 해당 문서 유형으로 결과 생성하도록 명확히 지시할 것
-
 [스타일]
 {style_instruction}
 """
 
     user_input = f"""
-[역할]
-{expert_role}
+아래 요구사항을 기반으로 최종 프롬프트를 작성하라.
 
-[상황]
-{situation}
-
-[목표]
-{goal}
-
-[추가 요구사항]
-{extra if extra else "없음"}
+{preview_text}
 """
 
     return request_chat(system_prompt, user_input, max_tokens)
