@@ -37,6 +37,22 @@ AI가 당신의 질문을 분석하고
 
 st.divider()
 
+st.markdown("## 🔗 AI 서비스 바로가기")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.link_button("ChatGPT", "https://chat.openai.com")
+
+with col2:
+    st.link_button("Gemini", "https://gemini.google.com")
+
+with col3:
+    st.link_button("Claude", "https://claude.ai")
+
+with col4:
+    st.link_button("Perplexity", "https://www.perplexity.ai")
+    
 # -------------------------------
 # 세션 초기화
 # -------------------------------
@@ -154,52 +170,183 @@ if st.button("자동 분석"):
             if "auto_eval" in st.session_state:
                 st.info("자동 분석 평가 결과")
                 st.write(st.session_state.auto_eval)
+template_mode = st.radio(
+    "템플릿 적용 방식",
+    ["새로 적용 (기존 내용 교체)", "기존 내용에 추가"]
+)
 
 st.markdown("### 빠른 템플릿 선택")
+st.info(f"현재 템플릿 적용 방식: {template_mode}")
 
 # 1행
 col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("보고서 작성"):
-        st.session_state.situation_input = "업무 보고서를 작성해야 하는 상황"
-        st.session_state.goal_input = "논리적이고 구조적인 보고서 초안 작성"
+        base_situation = "업무 보고서를 작성해야 하는 상황"
+        base_goal = "논리적이고 구조적인 보고서 초안 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 with col2:
     if st.button("이메일 작성"):
-        st.session_state.situation_input = "민원인 또는 내부 직원에게 이메일을 보내야 하는 상황"
-        st.session_state.goal_input = "정중하고 명확한 업무 이메일 작성"
+        base_situation = "민원인 또는 내부 직원에게 이메일을 보내야 하는 상황"
+        base_goal = "정중하고 명확한 업무 이메일 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 with col3:
-    if st.button("계획서 작성"):  # ✅ 변경됨
-        st.session_state.situation_input = "사업 또는 프로젝트 계획서를 작성해야 하는 상황"
-        st.session_state.goal_input = "실행 가능하고 설득력 있는 계획서 작성"
+    if st.button("계획서 작성"):
+        base_situation = "사업 또는 프로젝트 계획서를 작성해야 하는 상황"
+        base_goal = "실행 가능하고 설득력 있는 계획서 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 # 2행
 col4, col5, col6 = st.columns(3)
 
 with col4:
-    if st.button("보도자료 작성"):  # ✅ 추가
-        st.session_state.situation_input = "기관의 정책 또는 사업을 외부에 알리기 위한 보도자료를 작성해야 하는 상황"
-        st.session_state.goal_input = "언론에 적합한 형식의 명확하고 신뢰감 있는 보도자료 작성"
+    if st.button("보도자료 작성"):
+        base_situation = "기관의 정책 또는 사업을 외부에 알리기 위한 보도자료를 작성해야 하는 상황"
+        base_goal = "언론에 적합한 형식의 명확하고 신뢰감 있는 보도자료 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 with col5:
-    if st.button("국민신문고 답변"):  # ✅ 추가
-        st.session_state.situation_input = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
-        st.session_state.goal_input = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
+    if st.button("국민신문고 답변"):
+        base_situation = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
+        base_goal = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 with col6:
-    if st.button("정보공개청구 답변"):  # ✅ 추가
-        st.session_state.situation_input = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
-        st.session_state.goal_input = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
+    if st.button("정보공개청구 답변"):
+        base_situation = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
+        base_goal = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
+
 
 # 3행
 col7, col8, col9 = st.columns(3)
 
 with col7:
-    if st.button("행사 시나리오"):  # ✅ 추가
-        st.session_state.situation_input = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
-        st.session_state.goal_input = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
+    if st.button("행사 시나리오"):
+        base_situation = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
+        base_goal = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
+
+        if template_mode == "새로 적용 (기존 내용 교체)":
+            st.session_state.situation_input = base_situation
+            st.session_state.goal_input = base_goal
+            st.success("템플릿이 새로 적용되었습니다")
+
+        st.session_state.situation_input = (
+            st.session_state.situation_input + " / " + base_situation
+            if st.session_state.situation_input else base_situation
+        )
+
+        st.session_state.goal_input = (
+            st.session_state.goal_input + " / " + base_goal
+            if st.session_state.goal_input else base_goal
+        )
+
+        st.success("기존 입력에 템플릿이 추가되었습니다")
 
 extra_input = st.text_area(
     "추가 요구사항",
@@ -227,15 +374,54 @@ style = st.radio(
 # 설명
 if style == "전문가형":
     st.caption("구조 + 설명 포함 (학습용)")
-    st.code("Role / Goal / Instructions / Format 구조 + 설명")
+    st.code("""1. 역할 (Role)
+너는 공공기관 보고서 작성 전문가다.
+
+2. 목표 (Goal)
+상급자가 빠르게 이해할 수 있는 보고서를 작성한다.
+
+3. 조건 (Instructions)
+- 핵심 위주로 작성
+- 논리 구조 유지
+- 불필요한 표현 제거
+
+4. 출력 형식 (Format)
+- 제목 + 본문 구조
+""")
 
 elif style == "간결형":
     st.caption("실무용 문장형")
-    st.code("보고서를 작성하되 핵심만 간결하게 정리")
+    st.code("""공공기관 보고서를 작성하되, 핵심만 간결하게 정리하고 상급자가 빠르게 이해할 수 있도록 작성하라.""")
 
 elif style == "초간결형":
     st.caption("최소 문장")
-    st.code("보고서 작성. 핵심만.")
+    st.code("""보고서 작성. 핵심만.""")
+
+# -------------------------------
+# 프롬프트 미리보기
+# -------------------------------
+st.markdown("### 📌 현재 입력 미리보기")
+st.info("현재 입력 내용이 실시간으로 반영됩니다")
+
+preview_situation = st.session_state.get("situation_input", "").strip()
+preview_goal = st.session_state.get("goal_input", "").strip()
+preview_extra = extra_input.strip()
+
+if preview_situation or preview_goal:
+    preview_text = f"""
+[상황]
+{preview_situation if preview_situation else "-"}
+
+[목표]
+{preview_goal if preview_goal else "-"}
+
+[추가 요구사항]
+{preview_extra if preview_extra else "-"}
+
+"""
+    st.code(preview_text)
+else:
+    st.caption("아직 입력된 내용이 없습니다.")
 
 st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
 
@@ -272,6 +458,8 @@ if st.button("프롬프트 생성"):
                     st.session_state.last_prompt = result
                     st.session_state.history.append(result)
 
+                    st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
+
                     st.markdown("### 생성 결과")
 
                     with st.container():
@@ -279,6 +467,24 @@ if st.button("프롬프트 생성"):
 
                         # ✅ 복사 버튼 (여기)
                         copy_button(result, "copy_gen")
+
+                        st.markdown("### 🤖 AI로 바로 실행")
+
+                        col1, col2, col3, col4 = st.columns(4)
+
+                        with col1:
+                            st.link_button("ChatGPT 열기", "https://chat.openai.com")
+
+                        with col2:
+                            st.link_button("Gemini 열기", "https://gemini.google.com")
+
+                        with col3:
+                            st.link_button("Claude 열기", "https://claude.ai")
+
+                        with col4:
+                            st.link_button("Perplexity 열기", "https://www.perplexity.ai")
+
+                        st.caption("※ 프롬프트는 이미 복사되었습니다. 이동 후 붙여넣기 하세요.")
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
 
