@@ -65,6 +65,18 @@ if "history" not in st.session_state:
 
 if "last_prompt" not in st.session_state:
     st.session_state.last_prompt = ""
+    
+if "prev_score" not in st.session_state:
+    st.session_state.prev_score = None
+
+if "current_score" not in st.session_state:
+    st.session_state.current_score = None
+    
+if "high_quality" not in st.session_state:
+    st.session_state.high_quality = False
+
+if "low_quality" not in st.session_state:
+    st.session_state.low_quality = False
 
 if "eval_result" not in st.session_state:
     st.session_state.eval_result = ""
@@ -202,6 +214,16 @@ template_mode = st.radio(
     "템플릿 적용 방식",
     ["새로 적용 (기존 내용 교체)", "기존 내용에 추가"]
 )
+
+# 🔥 자동 보완 버튼
+if st.button("입력 자동 보완"):
+    if input_mode == "자유 입력" and free_input.strip():
+        improved_situation, improved_goal = parse_user_input(free_input)
+
+        st.session_state.situation_input = improved_situation
+        st.session_state.goal_input = improved_goal
+
+        st.success("입력이 자동 보완되었습니다")
 
 st.markdown("### 빠른 템플릿 선택")
 st.info(f"현재 템플릿 적용 방식: {template_mode}")
@@ -406,6 +428,19 @@ style = st.radio(
     ["전문가형", "간결형", "초간결형"]
 )
 
+with st.expander("좋은 질문 예시 보기"):
+    st.markdown("""
+예시:
+
+상황: 지자체 AI 교육 프로그램 운영 사례 분석  
+목표: 정책 수립 참고를 위한 사례 정리  
+
+→ 좋은 질문 특징:
+- 상황 명확
+- 목표 구체적
+- 결과 방향 있음
+""")
+
 # 설명
 if style == "전문가형":
     st.caption("구조 + 설명 포함 (학습용)")
@@ -441,6 +476,13 @@ st.info("현재 입력 내용이 실시간으로 반영됩니다")
 preview_situation = st.session_state.get("situation_input", "").strip()
 preview_goal = st.session_state.get("goal_input", "").strip()
 preview_extra = extra_input.strip()
+
+# 🔥 입력 부족 체크
+if not preview_goal:
+    st.warning("⚠ 목표가 없습니다 → '무엇을 얻고 싶은지' 입력하세요")
+
+if len(preview_situation) < 10:
+    st.warning("⚠ 상황이 부족합니다 → 배경을 조금 더 구체적으로 입력하세요")
 
 if preview_situation or preview_goal:
     preview_text = f"""
@@ -481,7 +523,7 @@ st.caption(f"적용 모드: {active_mode}")
 # 기존 코드
 # -------------------------------
 st.markdown("### 🧠 AI에게 이렇게 질문됩니다")
-st.caption("※ 이 질문을 그대로 AI에 입력하면 최적의 결과가 생성됩니다")
+st.caption("이 프롬프트를 복사해서 ChatGPT 등에 입력하면 결과가 생성됩니다")
 
 # 🔥 질문 미리보기 (모드 반영)
 def build_question_preview(mode, situation, goal, extra, style):
@@ -618,6 +660,43 @@ if st.button("프롬프트 생성"):
                         preview_text,
                         style
                     )
+                    # # 🔥 평가 실행
+                    # eval_text, _ = evaluate_prompt(result, "전문가형")
+
+                    # 🔥 점수 추출
+                    score = 0
+                    try:
+                        score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
+                        score = int(score_line)
+                        st.session_state.current_score = score
+                    except:
+                        score = 50  # fallback
+
+                    # 🔥 점수 표시
+                    st.markdown("### 프롬프트 품질")
+
+                    st.metric("점수", f"{score} / 100")
+
+                    # 🔥 점수 기반 추천
+                    if score < 60:
+                        st.error("⚠ 낮은 품질 → 반드시 개선하세요")
+                        st.warning("👉 자동 개선 버튼 사용 추천")
+
+                    elif score < 80:
+                        st.warning("👉 조금만 개선하면 더 좋아집니다")
+
+                    else:
+                        st.success("✅ 바로 사용 가능한 프롬프트입니다")
+
+                    # 🔥 평가 내용 (이해용)
+                    with st.expander("왜 이 점수인가요?"):
+                        st.write(eval_text)
+                        
+                    # 🔥 평가 결과 저장 (여기에 추가)
+                    st.session_state.prompt_score_text = eval_text
+
+                    st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
+                    st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
 
                     add_usage(tokens)
 
@@ -631,6 +710,26 @@ if st.button("프롬프트 생성"):
 
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
+
+                # 👉 여기에 추가 (프롬프트 출력 위)
+                # if st.session_state.last_prompt:
+                #     st.markdown("### 프롬프트 품질")
+
+                #     if st.session_state.low_quality:
+                #         st.error("⚠ 개선이 필요한 프롬프트입니다")
+
+                #     elif st.session_state.high_quality:
+                #         st.success("✅ 완성도 높은 프롬프트입니다")
+
+                #     else:
+                #         st.info("ℹ 보통 수준의 프롬프트입니다")
+
+                #     eval_text, _ = evaluate_prompt(st.session_state.last_prompt, "초간결형")
+
+                #     st.success("프롬프트 평가 완료")
+
+                #     with st.expander("평가 내용 보기"):
+                #         st.write(eval_text)
 
                 # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
                 if st.session_state.last_prompt:
@@ -661,6 +760,12 @@ if st.button("프롬프트 생성"):
 # -------------------------------
 # 프롬프트 평가
 # -------------------------------
+# 🔥 자동 개선 추천
+if st.session_state.last_prompt:
+
+    if st.session_state.low_quality:
+        st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
+
 st.markdown("## STEP 3. 평가 및 개선")
 
 col1, col2 = st.columns(2)
@@ -674,7 +779,11 @@ if st.session_state.eval_result:
     copy_button(st.session_state.eval_result, "copy_eval_fixed")
 
 with col2:
-    refine_clicked = st.button("프롬프트 개선")
+    if st.session_state.high_quality:
+        st.caption("이미 완성도 높은 프롬프트입니다")
+        refine_clicked = False
+    else:
+        refine_clicked = st.button("🚀 자동 개선")
 
 if eval_clicked and "eval_running" not in st.session_state:
     st.session_state.eval_running = True
@@ -729,6 +838,7 @@ if refine_clicked and "refine_running" not in st.session_state:
         else:
             with st.spinner("개선 중..."):
                 try:
+                    st.session_state.prev_score = st.session_state.current_score
                     result, tokens = refine_prompt(
                         st.session_state.last_prompt,
                         feedback,
@@ -745,6 +855,33 @@ if refine_clicked and "refine_running" not in st.session_state:
                         st.markdown("### 개선된 프롬프트")
                         st.code(result, language="markdown")
                         copy_button(result, "copy_refine")
+
+                    # 🔥 개선 후 점수 재평가 (여기에 넣기)
+                    eval_text, _ = evaluate_prompt(result, "전문가형")
+
+                    new_score = 0
+                    try:
+                        score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
+                        new_score = int(score_line)
+                    except:
+                        new_score = 50
+
+                    st.session_state.current_score = new_score
+
+                    # 🔥 점수 비교 표시
+                    if st.session_state.prev_score is not None and st.session_state.current_score is not None:
+
+                        before = st.session_state.prev_score
+                        after = st.session_state.current_score
+
+                        st.markdown("### 📊 개선 결과")
+
+                        if after > before:
+                            st.success(f"이전: {before}점 → 개선 후: {after}점 (+{after - before})")
+                        elif after == before:
+                            st.info(f"이전: {before}점 → 개선 후: {after}점 (변화 없음)")
+                        else:
+                            st.error(f"이전: {before}점 → 개선 후: {after}점 (-{before - after})")
 
                 except Exception as e:
                     st.error(f"오류 발생: {e}")
