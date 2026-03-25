@@ -1,5 +1,6 @@
 import streamlit as st
 import html
+from prompt_engine import explain_diff
 from prompt_engine import (
     init_client,
     generate_prompt,
@@ -62,6 +63,9 @@ if "history" not in st.session_state:
 if "last_prompt" not in st.session_state:
     st.session_state.last_prompt = ""
 
+if "selected_template" not in st.session_state:
+    st.session_state.selected_template = None
+
 # 템플릿 입력값
 if "situation_input" not in st.session_state:
     st.session_state.situation_input = ""
@@ -121,6 +125,8 @@ with st.expander("사용 방법 보기"):
 # 입력 영역
 # -------------------------------
 st.markdown("## STEP 1. 입력")
+
+st.info("이 시스템은 허위 정보 생성을 방지하기 위해 검증 기반 프롬프트만 생성합니다.")
 
 input_mode = st.radio(
     "입력 방식 선택",
@@ -183,6 +189,7 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("보고서 작성"):
+        st.session_state.selected_template = "보고서 작성" 
         base_situation = "업무 보고서를 작성해야 하는 상황"
         base_goal = "논리적이고 구조적인 보고서 초안 작성"
 
@@ -207,6 +214,7 @@ with col1:
 
 with col2:
     if st.button("이메일 작성"):
+        st.session_state.selected_template = "이메일 작성" 
         base_situation = "민원인 또는 내부 직원에게 이메일을 보내야 하는 상황"
         base_goal = "정중하고 명확한 업무 이메일 작성"
 
@@ -230,6 +238,7 @@ with col2:
 
 with col3:
     if st.button("계획서 작성"):
+        st.session_state.selected_template = "계획서 작성" 
         base_situation = "사업 또는 프로젝트 계획서를 작성해야 하는 상황"
         base_goal = "실행 가능하고 설득력 있는 계획서 작성"
 
@@ -256,6 +265,7 @@ col4, col5, col6 = st.columns(3)
 
 with col4:
     if st.button("보도자료 작성"):
+        st.session_state.selected_template = "보도자료 작성" 
         base_situation = "기관의 정책 또는 사업을 외부에 알리기 위한 보도자료를 작성해야 하는 상황"
         base_goal = "언론에 적합한 형식의 명확하고 신뢰감 있는 보도자료 작성"
 
@@ -279,6 +289,7 @@ with col4:
 
 with col5:
     if st.button("국민신문고 답변"):
+        st.session_state.selected_template = "국민신문고 작성" 
         base_situation = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
         base_goal = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
 
@@ -302,6 +313,7 @@ with col5:
 
 with col6:
     if st.button("정보공개청구 답변"):
+        st.session_state.selected_template = "정보공개청구 작성" 
         base_situation = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
         base_goal = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
 
@@ -328,6 +340,7 @@ col7, col8, col9 = st.columns(3)
 
 with col7:
     if st.button("행사 시나리오"):
+        st.session_state.selected_template = "행사시나리오 작성" 
         base_situation = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
         base_goal = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
 
@@ -425,6 +438,27 @@ else:
 
 st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
 
+
+
+st.markdown("### 🧠 AI에게 이렇게 질문됩니다")
+st.caption("※ 이 질문을 그대로 AI에 입력하면 최적의 결과가 생성됩니다")
+
+template_label = st.session_state.selected_template or "일반 업무"
+
+question_preview = f"""
+너는 {template_label} 전문가다.
+
+다음 상황에서 결과를 생성하라:
+
+- 상황: {preview_situation}
+- 목표: {preview_goal}
+- 추가 요구사항: {preview_extra if preview_extra else "없음"}
+
+위 조건을 반영하여 결과를 작성하라.
+"""
+
+st.code(question_preview)
+
 # -------------------------------
 # 프롬프트 생성
 # -------------------------------
@@ -447,7 +481,9 @@ if st.button("프롬프트 생성"):
                     result, tokens = generate_prompt(
                                                         st.session_state.situation_input,
                                                         st.session_state.goal_input + (f" / {extra_input}" if extra_input else ""),
-                                                        style
+                                                        style,
+                                                        extra_input,
+                                                        template_type=st.session_state.selected_template
                                                     )
 
                     add_usage(tokens)
@@ -592,15 +628,55 @@ if st.session_state.history:
 # -------------------------------
 # Before / After 비교
 # -------------------------------
-st.subheader("6. 비교")
+st.subheader("개선 비교 (Before → After)")
 
 if len(st.session_state.history) >= 2:
-    col1, col2 = st.columns(2)
 
-    with col1:
-        st.markdown("### 이전")
+    st.markdown("### 이전")
+    with st.container():
         st.code(st.session_state.history[-2], language="markdown")
+        copy_button(st.session_state.history[-2], "copy_before")
 
-    with col2:
-        st.markdown("### 현재")
+    st.divider()
+
+    st.markdown("### 현재")
+    with st.container():
         st.code(st.session_state.history[-1], language="markdown")
+        copy_button(st.session_state.history[-1], "copy_after")
+
+    # 🔥 여기 추가
+    st.divider()
+    st.markdown("### 변경된 부분 (Diff)")
+
+    st.caption("※ + 추가 / - 삭제된 내용입니다")
+
+    import difflib
+
+    before = st.session_state.history[-2]
+    after = st.session_state.history[-1]
+
+    diff = difflib.ndiff(
+        before.splitlines(),
+        after.splitlines()
+    )
+
+    st.code("\n".join(diff), language="diff")
+
+    # -------------------------------
+    # 🔥 AI 개선 설명 추가
+    # -------------------------------
+    st.divider()
+    st.markdown("### AI 개선 설명")
+
+    with st.spinner("AI가 개선 이유를 분석 중입니다..."):
+        try:
+            explanation, tokens = explain_diff(before, after)
+
+            add_usage(tokens)
+
+            st.write(explanation)
+            copy_button(explanation, "copy_explain")
+
+        except Exception as e:
+            st.error(f"설명 생성 오류: {e}")
+
