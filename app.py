@@ -135,7 +135,7 @@ if input_mode == "육하원칙 입력":
     st.session_state.goal_input = f"{why} 목적을 달성하기 위해 {how} 방식으로 결과 생성"
 
 if st.button("자동 분석"):
-    if free_input.strip():
+    if input_mode == "자유 입력" and free_input.strip():
         with st.spinner("분석 중..."):
             try:
                 situation_part, goal_part = parse_user_input(free_input)
