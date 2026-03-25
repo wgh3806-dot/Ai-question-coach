@@ -78,10 +78,58 @@ def get_template_rules(template_type):
 - 시간 흐름 중심으로 작성
 - 실제 진행 가능한 시나리오 구성
 - 멘트 포함 가능
+""",
+        "정보 탐색": """
+너는 특정 주제에 대해 정확하고 이해하기 쉽게 설명하는 정보 탐색 전문가다.
+
+- 사실 기반으로 설명할 것
+- 불확실한 내용은 "확인 필요"라고 표시할 것
+- 추정, 과장, 창작 금지
+- 초보자도 이해할 수 있게 설명할 것
+- 핵심부터 먼저 설명할 것
+- 불필요한 홍보성 문장 금지
+- 설명 외 군더더기 문장 금지
+
+[형식]
+1. 핵심 요약
+2. 주요 내용
+3. 추가로 알아둘 점
 """
     }
 
     return templates.get(template_type, "")
+
+def detect_task_type(situation, goal):
+    text = f"{situation} {goal}".lower()
+
+    # 문서 작성 계열
+    if "보도자료" in text:
+        return "보도자료 작성"
+    elif "보고서" in text:
+        return "보고서 작성"
+    elif "이메일" in text or "메일" in text:
+        return "이메일 작성"
+    elif "민원" in text or "신문고" in text:
+        return "국민신문고 답변"
+    elif "정보공개" in text:
+        return "정보공개청구 답변"
+    elif "계획서" in text or ("계획" in text and "작성" in text):
+        return "계획서 작성"
+    elif "행사" in text or "시나리오" in text:
+        return "행사 시나리오"
+
+    # 정보 탐색 계열
+    info_keywords = [
+        "무엇", "뭐", "설명", "알려줘", "정리", "비교", "차이",
+        "개념", "의미", "이유", "원인", "전망", "동향", "분석",
+        "찾아줘", "검색", "조사", "소개", "장단점", "특징", "보여줘",
+        "팩트"
+    ]
+
+    if any(keyword in text for keyword in info_keywords):
+        return "정보 탐색"
+
+    return None
 
 def get_style_instruction(style):
     if style == "간결형":
@@ -103,6 +151,18 @@ def get_reliability_rules():
 - 가능하면 근거 방식 포함 (법령, 공식자료, 통계 등)
 """
 
+def generate_dynamic_expert(situation, goal):
+    text = f"{situation} {goal}"
+
+    return f"""
+너는 아래 업무를 수행하는 공공기관 실무 전문가다.
+
+업무:
+{text}
+
+해당 업무를 가장 잘 수행할 수 있는 전문 역할로 행동하라.
+"""
+
 
 def request_chat(system_prompt, user_input, max_tokens=500, model=DEFAULT_MODEL):
     ensure_client()
@@ -121,16 +181,76 @@ def request_chat(system_prompt, user_input, max_tokens=500, model=DEFAULT_MODEL)
 
     return content, total_tokens
 
+def build_expert_role(situation, goal, template_type=None):
+     # 🔥 정보 탐색 먼저 처리 (이게 핵심)
+    if template_type == "정보 탐색":
+        text = f"{situation} {goal}".strip()
+
+        return f"""
+    너는 해당 주제에 대해 정확한 정보를 조사·분석·설명하는 전문 연구자다.
+
+    주제:
+    {text}
+
+    규칙:
+    - 사실 기반으로 설명
+    - 불확실한 내용은 "확인 필요" 표시
+    - 핵심부터 정리
+    - 과장, 추정, 창작 금지
+    """
+    # 템플릿 기반
+    if template_type:
+
+        expert_map = {
+            "보도자료 작성": "10년 이상 경력의 공공기관 홍보담당 사무관",
+            "보고서 작성": "10년 이상 경력의 정책기획 담당 사무관",
+            "이메일 작성": "공공기관 행정업무 담당자",
+            "계획서 작성": "공공기관 사업기획 전문가",
+            "국민신문고 답변": "민원 대응 담당 공무원",
+            "정보공개청구 답변": "정보공개 및 법령 검토 담당자",
+            "행사 시나리오": "공공기관 행사 운영 전문가"
+        }
+
+        role = expert_map.get(template_type, "공공기관 실무 담당자")
+
+        return f"""
+너는 {role}다.
+
+실제 업무를 수행하는 입장에서
+결과를 작성하라.
+"""
+
+    # 🔥 자유 입력 기반 (강화 버전)
+    text = f"{situation} {goal}".strip()
+
+    return f"""
+너는 아래 업무를 수행하는 10년 이상 경력의 실무 전문가다.
+
+업무:
+{text}
+
+현장에서 바로 사용할 수 있는 수준으로 작성하라.
+"""
+
 def generate_prompt(situation, goal, style, extra="", template_type=None, max_tokens=500):
+     # 🔥 핵심 추가 (이거 없으면 의미 없음)
+    if template_type is None:
+        template_type = detect_task_type(situation, goal)
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
-    template_rule = get_template_rules(template_type)
+    if template_type:
+        template_rule = get_template_rules(template_type)
+    else:
+        template_rule = generate_dynamic_expert(situation, goal)
+
+      # 🔥 전문가 역할 생성
+    expert_role = build_expert_role(situation, goal, template_type)
 
     system_prompt = f"""
 너는 생성형 AI 질문 코치 시스템이다.
 
 목적:
-사용자의 질문을 분석하고 100점 프롬프트를 생성한다.
+사용자의 입력을 기반으로 "실제 결과물을 생성하는 프롬프트"를 만든다.
 
 {reliability}
 
@@ -142,16 +262,31 @@ def generate_prompt(situation, goal, style, extra="", template_type=None, max_to
 3. 조건 (Instructions)
 4. 출력 형식 (Format)
 
-[중요 규칙]
-- 결과물 생성이 목적이다 (설명 금지)
+[핵심 원칙 - 반드시 준수]
+- 프롬프트 설명 절대 금지
+- 결과물 생성이 목적이다
 - "이 프롬프트를 활용하여" 같은 문장 절대 금지
-- 반드시 실제 결과가 나오도록 작성
+- 반드시 실무에서 바로 사용할 수 있는 결과를 생성하도록 작성
+
+[출력 강제 규칙]
+- 결과물 외 불필요한 설명 절대 금지
+- 바로 결과부터 작성 시작
+- "다음은" 같은 문장 금지
+- 안내문, 설명문, 해설문 금지
+- 오직 결과를 생성하도록 지시할 것
+
+[템플릿 실행 규칙]
+- 선택된 템플릿 형식을 반드시 따르도록 강제할 것
+- 템플릿이 존재할 경우 해당 문서 유형으로 결과 생성하도록 명확히 지시할 것
 
 [스타일]
 {style_instruction}
 """
 
     user_input = f"""
+[역할]
+{expert_role}
+
 [상황]
 {situation}
 
@@ -159,7 +294,7 @@ def generate_prompt(situation, goal, style, extra="", template_type=None, max_to
 {goal}
 
 [추가 요구사항]
-{extra}
+{extra if extra else "없음"}
 """
 
     return request_chat(system_prompt, user_input, max_tokens)

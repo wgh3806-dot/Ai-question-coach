@@ -6,7 +6,8 @@ from prompt_engine import (
     generate_prompt,
     evaluate_prompt,
     refine_prompt,
-    parse_user_input
+    parse_user_input,
+    detect_task_type   # 🔥 이거 추가
 )
 from data_manager import (
     add_usage,
@@ -66,6 +67,9 @@ if "last_prompt" not in st.session_state:
 if "selected_template" not in st.session_state:
     st.session_state.selected_template = None
 
+if "mode" not in st.session_state:
+    st.session_state.mode = "자동"
+
 # 템플릿 입력값
 if "situation_input" not in st.session_state:
     st.session_state.situation_input = ""
@@ -124,6 +128,16 @@ with st.expander("사용 방법 보기"):
 # -------------------------------
 # 입력 영역
 # -------------------------------
+st.markdown("### 작업 모드 선택")
+
+mode = st.radio(
+    "작업 유형을 선택하세요",
+    ["자동", "문서 작성", "정보 탐색"],
+    index=0
+)
+
+st.session_state.mode = mode
+
 st.markdown("## STEP 1. 입력")
 
 st.info("이 시스템은 허위 정보 생성을 방지하기 위해 검증 기반 프롬프트만 생성합니다.")
@@ -289,7 +303,7 @@ with col4:
 
 with col5:
     if st.button("국민신문고 답변"):
-        st.session_state.selected_template = "국민신문고 작성" 
+        st.session_state.selected_template = "국민신문고 답변" 
         base_situation = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
         base_goal = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
 
@@ -313,7 +327,7 @@ with col5:
 
 with col6:
     if st.button("정보공개청구 답변"):
-        st.session_state.selected_template = "정보공개청구 작성" 
+        st.session_state.selected_template = "정보공개청구 답변" 
         base_situation = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
         base_goal = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
 
@@ -340,7 +354,7 @@ col7, col8, col9 = st.columns(3)
 
 with col7:
     if st.button("행사 시나리오"):
-        st.session_state.selected_template = "행사시나리오 작성" 
+        st.session_state.selected_template = "행사 시나리오" 
         base_situation = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
         base_goal = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
 
@@ -438,23 +452,53 @@ else:
 
 st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
 
+# -------------------------------
+# 🔥 적용 전문가 표시 (여기에 추가)
+# -------------------------------
+auto_detect = detect_task_type(preview_situation, preview_goal)
 
+# 🔥 모드 기준 결정
+if st.session_state.mode == "정보 탐색":
+    active_mode = "정보 탐색"
 
+elif st.session_state.mode == "문서 작성":
+    active_mode = st.session_state.selected_template or "문서 작성"
+
+else:
+    active_mode = auto_detect or st.session_state.selected_template or "문서 작성"
+
+st.caption(f"적용 모드: {active_mode}")
+
+# -------------------------------
+# 기존 코드
+# -------------------------------
 st.markdown("### 🧠 AI에게 이렇게 질문됩니다")
 st.caption("※ 이 질문을 그대로 AI에 입력하면 최적의 결과가 생성됩니다")
 
-template_label = st.session_state.selected_template or "일반 업무"
+# 🔥 질문 미리보기 (모드 반영)
+if active_mode == "정보 탐색":
+    question_preview = f"""
+너는 {active_mode} 전문가다.
 
-question_preview = f"""
-너는 {template_label} 전문가다.
-
-다음 상황에서 결과를 생성하라:
+다음 주제에 대해 사실 기반으로 설명하라.
 
 - 상황: {preview_situation}
 - 목표: {preview_goal}
 - 추가 요구사항: {preview_extra if preview_extra else "없음"}
 
-위 조건을 반영하여 결과를 작성하라.
+핵심부터 정리하고, 불확실한 내용은 '확인 필요'로 표시하라.
+"""
+else:
+    question_preview = f"""
+너는 {active_mode} 전문가다.
+
+다음 상황에서 결과를 작성하라:
+
+- 상황: {preview_situation}
+- 목표: {preview_goal}
+- 추가 요구사항: {preview_extra if preview_extra else "없음"}
+
+실무에서 바로 사용할 수 있도록 작성하라.
 """
 
 st.code(question_preview)
@@ -478,13 +522,23 @@ if st.button("프롬프트 생성"):
         else:
             with st.spinner("생성 중..."):
                 try:
+                    if st.session_state.mode == "정보 탐색":
+                        template_type = "정보 탐색"
+
+                    elif st.session_state.mode == "문서 작성":
+                        template_type = st.session_state.selected_template
+
+                    else:
+                        template_type = st.session_state.selected_template  # 자동
+
+                    # 🔥 기존 generate_prompt 호출 교체
                     result, tokens = generate_prompt(
-                                                        st.session_state.situation_input,
-                                                        st.session_state.goal_input + (f" / {extra_input}" if extra_input else ""),
-                                                        style,
-                                                        extra_input,
-                                                        template_type=st.session_state.selected_template
-                                                    )
+                        st.session_state.situation_input,
+                        st.session_state.goal_input,
+                        style,
+                        extra_input,
+                        template_type=template_type
+                    )
 
                     add_usage(tokens)
 
@@ -679,4 +733,5 @@ if len(st.session_state.history) >= 2:
 
         except Exception as e:
             st.error(f"설명 생성 오류: {e}")
+
 
