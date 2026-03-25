@@ -476,30 +476,96 @@ st.markdown("### 🧠 AI에게 이렇게 질문됩니다")
 st.caption("※ 이 질문을 그대로 AI에 입력하면 최적의 결과가 생성됩니다")
 
 # 🔥 질문 미리보기 (모드 반영)
-if active_mode == "정보 탐색":
-    question_preview = f"""
-너는 {active_mode} 전문가다.
+def build_question_preview(mode, situation, goal, extra, style):
 
-다음 주제에 대해 사실 기반으로 설명하라.
+    if style == "간결형":
+        style_text = "핵심만 간결하게 작성"
+    elif style == "초간결형":
+        style_text = "최소 문장으로 작성"
+    else:
+        style_text = "구조적으로 작성"
 
-- 상황: {preview_situation}
-- 목표: {preview_goal}
-- 추가 요구사항: {preview_extra if preview_extra else "없음"}
+    if mode == "정보 탐색":
 
-핵심부터 정리하고, 불확실한 내용은 '확인 필요'로 표시하라.
+        if style == "초간결형":
+            return f"""
+정보 탐색
+
+상황: {situation}
+목표: {goal}
+
+팩트만. 불확실 내용 생성 금지
 """
-else:
-    question_preview = f"""
-너는 {active_mode} 전문가다.
 
-다음 상황에서 결과를 작성하라:
+        elif style == "간결형":
+            return f"""
+너는 정보 탐색 전문가다.
 
-- 상황: {preview_situation}
-- 목표: {preview_goal}
-- 추가 요구사항: {preview_extra if preview_extra else "없음"}
+- 상황: {situation}
+- 목표: {goal}
 
-실무에서 바로 사용할 수 있도록 작성하라.
+사실 기반으로 간결하게 설명하라.
+불확실한 내용은 생성하지 마라.
 """
+
+        else:
+            return f"""
+너는 정보 탐색 전문가다.
+
+다음 주제에 대해 설명하라.
+
+- 상황: {situation}
+- 목표: {goal}
+
+조건:
+- 사실 기반
+- 추정 금지
+- 불확실한 내용 생성 금지
+- 핵심부터 정리
+"""
+
+    else:
+
+        if style == "초간결형":
+            return f"""
+문서 작성
+
+상황: {situation}
+목표: {goal}
+
+바로 실행
+"""
+
+        elif style == "간결형":
+            return f"""
+너는 {mode} 전문가다.
+
+- 상황: {situation}
+- 목표: {goal}
+
+실무용으로 간결하게 작성하라.
+"""
+
+        else:
+            return f"""
+너는 {mode} 전문가다.
+
+- 상황: {situation}
+- 목표: {goal}
+
+조건:
+- 실무 적용 가능
+- 구조 유지
+- 불필요 표현 제거
+"""
+
+question_preview = build_question_preview(
+    active_mode,
+    preview_situation,
+    preview_goal,
+    preview_extra,
+    style
+)
 
 st.code(question_preview)
 
