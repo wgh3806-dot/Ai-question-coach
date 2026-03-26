@@ -19,6 +19,16 @@ from data_manager import (
 )
 
 import json
+
+DEFAULT_TRUST_RULES = """
+[기본 작성 원칙]
+- 사실 기반으로 작성할 것
+- 불분명하거나 확인되지 않은 정보는 단정하지 말 것
+- 필요한 경우 '확인 필요', '추정', '일반적 가능성'으로 구분해 표현할 것
+- 허위 정보, 없는 사례, 임의 수치, 존재하지 않는 출처를 생성하지 말 것
+- 가능한 경우 근거, 판단 기준, 또는 추가 확인이 필요한 항목을 함께 제시할 것
+""".strip()
+
 def auto_copy(text):
     components.html(
         f"""
@@ -30,43 +40,30 @@ def auto_copy(text):
     )
 
 def build_question_preview(mode, situation, goal, extra, style):
-    base = f"""
-다음 입력을 바탕으로 최종 프롬프트를 설계하라.
+    situation = (situation or "").strip()
+    goal = (goal or "").strip()
+    extra = (extra or "").strip()
+    style = (style or "간결형").strip()
+    mode = (mode or "문서 작성").strip()
 
-[유형]
+    return f"""
+{DEFAULT_TRUST_RULES}
+
+[작업 모드]
 {mode}
 
 [상황]
-{situation}
+{situation if situation else "-"}
 
 [목표]
-{goal}
+{goal if goal else "-"}
 
 [추가 요구사항]
-{extra if extra else "없음"}
-"""
+{extra if extra else "-"}
 
-    if style == "초간결형":
-        return base + """
-요구사항:
-- 최소 문장
-- 핵심만 유지
-- 바로 복사 가능한 프롬프트 생성
-"""
-    elif style == "간결형":
-        return base + """
-요구사항:
-- 문장형 프롬프트 생성
-- 실무에서 바로 사용 가능
-- 불필요한 표현 제거
-"""
-    else:
-        return base + """
-요구사항:
-- 역할(Role), 목표(Goal), 조건(Instructions), 출력 형식(Format) 포함
-- 공공기관 실무 기준 반영
-- 구조적으로 명확하게 작성
-"""
+[출력 스타일]
+{style}
+""".strip()
 
 def copy_button(text, key):
     safe_text = json.dumps(text)
@@ -238,7 +235,7 @@ if ui_mode == "간편 모드":
                 st.markdown("### 결과")
                 st.code(result, language="markdown")
                 auto_copy(result)
-                st.success("복사 완료 → ChatGPT에 붙여넣기만 하세요")
+                st.success("복사 완료 → 생성형 AI에 붙여넣기만 하세요")
 
                 copy_button(result, "copy_simple")
                 st.caption("※ 복사 후 ChatGPT 등에 붙여넣어 사용하세요")
@@ -573,6 +570,7 @@ elif ui_mode == "전문가 모드":
     # -------------------------------
     st.markdown("### 📌 현재 입력 미리보기")
     st.info("현재 입력 내용이 실시간으로 반영됩니다")
+    st.caption("기본적으로 사실 기반, 불확실 정보 단정 금지 원칙이 자동 적용됩니다.")
 
     preview_situation = st.session_state.get("situation_input", "").strip()
     preview_goal = st.session_state.get("goal_input", "").strip()
