@@ -212,17 +212,17 @@ if ui_mode == "간편 모드":
         placeholder="예: 시민 대상 AI 교육 프로그램 사례 정리"
     )
 
-    if st.button("프롬프트 생성"):
+    if st.button("프롬프트 생성", key="simple_generate"):
 
         if not simple_input.strip():
             st.warning("내용을 입력하세요")
         else:
             with st.spinner("생성 중..."):
 
-                # 🔥 1. 자동 분석 (내부 처리)
+                # 1. 자동 분석
                 situation_part, goal_part = parse_user_input(simple_input)
 
-                # 🔥 2. 프롬프트 생성용 질문 구성
+                # 2. 프롬프트 생성용 질문 구성
                 preview_text = build_question_preview(
                     "문서 작성",
                     situation_part,
@@ -231,85 +231,91 @@ if ui_mode == "간편 모드":
                     "간결형"
                 )
 
-                # 🔥 3. 최종 프롬프트 생성
+                # 3. 최종 프롬프트 생성
                 result, tokens = generate_prompt(preview_text, "간결형")
 
-                # 🔥 4. 결과 출력
+                # 4. 결과 출력
                 st.markdown("### 결과")
                 st.code(result, language="markdown")
                 auto_copy(result)
                 st.success("복사 완료 → ChatGPT에 붙여넣기만 하세요")
 
                 copy_button(result, "copy_simple")
-
                 st.caption("※ 복사 후 ChatGPT 등에 붙여넣어 사용하세요")
 
-if ui_mode == "전문가 모드":
-    st.markdown("## STEP 1. 입력")
 
+elif ui_mode == "전문가 모드":
+
+    st.markdown("## STEP 1. 입력")
     st.info("이 시스템은 허위 정보 생성을 방지하기 위해 검증 기반 프롬프트만 생성합니다.")
 
     input_mode = st.radio(
         "입력 방식 선택",
-        ["자유 입력", "육하원칙 입력"]
+        ["자유 입력", "육하원칙 입력"],
+        key="expert_input_mode"
     )
 
-if input_mode == "자유 입력":
+    free_input = ""
 
-    st.markdown("### 자유 입력 (AI 자동 분석)")
+    if input_mode == "자유 입력":
 
-    free_input = st.text_area(
-        "그냥 편하게 입력하세요",
-        height=100,
-        placeholder=
-        "예: 스마트시티 사업 관련 보도자료 써줘"
+        st.markdown("### 자유 입력 (AI 자동 분석)")
+
+        free_input = st.text_area(
+            "그냥 편하게 입력하세요",
+            height=100,
+            placeholder="예: 스마트시티 사업 관련 보도자료 써줘"
+        )
+
+    elif input_mode == "육하원칙 입력":
+
+        who = st.text_input("누가")
+        what = st.text_input("무엇을")
+        why = st.text_input("왜")
+        when = st.text_input("언제")
+        where = st.text_input("어디서")
+        how = st.text_input("어떻게")
+
+        st.session_state.situation_input = f"{when}, {where}에서 {who}가 {what}을 수행하는 상황"
+        st.session_state.goal_input = f"{why} 목적을 달성하기 위해 {how} 방식으로 결과 생성"
+
+    if st.button("자동 분석", key="auto_analyze"):
+        if input_mode == "자유 입력" and free_input.strip():
+            with st.spinner("분석 중..."):
+                try:
+                    situation_part, goal_part = parse_user_input(free_input)
+
+                    st.session_state.situation_input = situation_part
+                    st.session_state.goal_input = goal_part
+
+                    st.success("분석 결과가 입력란에 자동 반영되었습니다")
+
+                except Exception as e:
+                    st.error(f"분석 오류: {e}")
+        elif input_mode == "자유 입력":
+            st.warning("자유 입력 내용을 먼저 입력하세요.")
+
+    if "auto_eval" in st.session_state:
+        with st.container():
+            st.markdown("### 자동 분석 결과")
+            col_a, col_b = st.columns(2)
+
+            with col_a:
+                st.markdown("**상황**")
+                st.write(st.session_state.get("situation_input", "") or "-")
+
+            with col_b:
+                st.markdown("**목표**")
+                st.write(st.session_state.get("goal_input", "") or "-")
+
+            with st.expander("입력 평가 보기"):
+                st.write(st.session_state.auto_eval)
+
+    template_mode = st.radio(
+        "템플릿 적용 방식",
+        ["새로 적용 (기존 내용 교체)", "기존 내용에 추가"],
+        key="template_mode"
     )
-
-if input_mode == "육하원칙 입력":
-
-    who = st.text_input("누가")
-    what = st.text_input("무엇을")
-    why = st.text_input("왜")
-    when = st.text_input("언제")
-    where = st.text_input("어디서")
-    how = st.text_input("어떻게")
-
-    st.session_state.situation_input = f"{when}, {where}에서 {who}가 {what}을 수행하는 상황"
-    st.session_state.goal_input = f"{why} 목적을 달성하기 위해 {how} 방식으로 결과 생성"
-
-if st.button("자동 분석"):
-    if input_mode == "자유 입력" and free_input.strip():
-        with st.spinner("분석 중..."):
-            try:
-                situation_part, goal_part = parse_user_input(free_input)
-
-                st.session_state.situation_input = situation_part
-                st.session_state.goal_input = goal_part
-
-
-                st.success("분석 결과가 입력란에 자동 반영되었습니다")
-
-            except Exception as e:
-                st.error(f"분석 오류: {e}")
-if "auto_eval" in st.session_state:
-    with st.container():
-        st.markdown("### 자동 분석 결과")
-        col_a, col_b = st.columns(2)
-
-        with col_a:
-            st.markdown("**상황**")
-            st.write(st.session_state.situation_input or "-")
-
-        with col_b:
-            st.markdown("**목표**")
-            st.write(st.session_state.goal_input or "-")
-
-        with st.expander("입력 평가 보기"):
-            st.write(st.session_state.auto_eval)
-template_mode = st.radio(
-    "템플릿 적용 방식",
-    ["새로 적용 (기존 내용 교체)", "기존 내용에 추가"]
-)
 
 st.markdown("### 빠른 템플릿 선택")
 st.info(f"현재 템플릿 적용 방식: {template_mode}")
