@@ -258,17 +258,14 @@ elif ui_mode == "전문가 모드":
     free_input = ""
 
     if input_mode == "자유 입력":
-
         st.markdown("### 자유 입력 (AI 자동 분석)")
-
         free_input = st.text_area(
-            "그냥 편하게 입력하세요",
+            "편하게 입력하세요",
             height=100,
             placeholder="예: 스마트시티 사업 관련 보도자료 써줘"
         )
 
     elif input_mode == "육하원칙 입력":
-
         who = st.text_input("누가")
         what = st.text_input("무엇을")
         why = st.text_input("왜")
@@ -316,279 +313,280 @@ elif ui_mode == "전문가 모드":
         ["새로 적용 (기존 내용 교체)", "기존 내용에 추가"],
         key="template_mode"
     )
+    st.info(f"현재 템플릿 적용 방식: {template_mode}")
 
-st.markdown("### 빠른 템플릿 선택")
-st.info(f"현재 템플릿 적용 방식: {template_mode}")
+    st.markdown("### 빠른 템플릿 선택")
 
-# 1행
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("보고서 작성"):
-        st.session_state.selected_template = "보고서 작성" 
-        base_situation = "업무 보고서를 작성해야 하는 상황"
-        base_goal = "논리적이고 구조적인 보고서 초안 작성"
-        apply_template(base_situation, base_goal, template_mode)
 
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
+    # 1행
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
+        if st.button("보고서 작성"):
+            st.session_state.selected_template = "보고서 작성" 
+            base_situation = "업무 보고서를 작성해야 하는 상황"
+            base_goal = "논리적이고 구조적인 보고서 초안 작성"
+            apply_template(base_situation, base_goal, template_mode)
 
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
 
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-with col2:
-    if st.button("이메일 작성"):
-        st.session_state.selected_template = "이메일 작성" 
-        base_situation = "민원인 또는 내부 직원에게 이메일을 보내야 하는 상황"
-        base_goal = "정중하고 명확한 업무 이메일 작성"
-        apply_template(base_situation, base_goal, template_mode)
 
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
 
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-with col3:
-    if st.button("계획서 작성"):
-        st.session_state.selected_template = "계획서 작성" 
-        base_situation = "사업 또는 프로젝트 계획서를 작성해야 하는 상황"
-        base_goal = "실행 가능하고 설득력 있는 계획서 작성"
-        apply_template(base_situation, base_goal, template_mode)
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
 
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
-
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-# 2행
-col4, col5, col6 = st.columns(3)
-
-with col4:
-    if st.button("보도자료 작성"):
-        st.session_state.selected_template = "보도자료 작성" 
-        base_situation = "기관의 정책 또는 사업을 외부에 알리기 위한 보도자료를 작성해야 하는 상황"
-        base_goal = "언론에 적합한 형식의 명확하고 신뢰감 있는 보도자료 작성"
-        apply_template(base_situation, base_goal, template_mode)
-
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
-
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-with col5:
-    if st.button("국민신문고 답변"):
-        st.session_state.selected_template = "국민신문고 답변" 
-        base_situation = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
-        base_goal = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
-        apply_template(base_situation, base_goal, template_mode)
-
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
-
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-with col6:
-    if st.button("정보공개청구 답변"):
-        st.session_state.selected_template = "정보공개청구 답변" 
-        base_situation = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
-        base_goal = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
-        apply_template(base_situation, base_goal, template_mode)
-
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
-
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-
-# 3행
-col7, col8, col9 = st.columns(3)
-
-with col7:
-    if st.button("행사 시나리오"):
-        st.session_state.selected_template = "행사 시나리오" 
-        base_situation = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
-        base_goal = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
-        apply_template(base_situation, base_goal, template_mode)
-
-        # if template_mode == "새로 적용 (기존 내용 교체)":
-        #     st.session_state.situation_input = base_situation
-        #     st.session_state.goal_input = base_goal
-        #     st.success("템플릿이 새로 적용되었습니다")
-
-        # st.session_state.situation_input = (
-        #     st.session_state.situation_input + " / " + base_situation
-        #     if st.session_state.situation_input else base_situation
-        # )
-
-        # st.session_state.goal_input = (
-        #     st.session_state.goal_input + " / " + base_goal
-        #     if st.session_state.goal_input else base_goal
-        # )
-
-        # st.success("기존 입력에 템플릿이 추가되었습니다")
-
-extra_input = st.text_area(
-    "추가 요구사항",
-    height=80,
-    placeholder="예: 간부 보고용, 1페이지 요약, 쉬운 표현, 표 없이 문장형으로 작성"
-)
-
-situation = st.text_area(
-    "상황",
-    height=100,
-    key="situation_input"
-)
-
-goal = st.text_area(
-    "목표",
-    height=100,
-    key="goal_input"
-)
-
-st.info(f"현재 입력 상태: {st.session_state.selected_template or '자유 입력 기반'}")
-
-style = st.radio(
-    "스타일 선택",
-    ["전문가형", "간결형", "초간결형"]
-)
-
-with st.expander("좋은 질문 예시 보기"):
-    st.markdown("""
-예시:
-
-상황: 지자체 AI 교육 프로그램 운영 사례 분석  
-목표: 정책 수립 참고를 위한 사례 정리  
-
-→ 좋은 질문 특징:
-- 상황 명확
-- 목표 구체적
-- 결과 방향 있음
-""")
-
-# 설명
-if style == "전문가형":
-    st.caption("구조 + 설명 포함 (학습용)")
-    st.code("""1. 역할 (Role)
-너는 공공기관 보고서 작성 전문가다.
-
-2. 목표 (Goal)
-상급자가 빠르게 이해할 수 있는 보고서를 작성한다.
-
-3. 조건 (Instructions)
-- 핵심 위주로 작성
-- 논리 구조 유지
-- 불필요한 표현 제거
-
-4. 출력 형식 (Format)
-- 제목 + 본문 구조
-""")
-
-elif style == "간결형":
-    st.caption("실무용 문장형")
-    st.code("""공공기관 보고서를 작성하되, 핵심만 간결하게 정리하고 상급자가 빠르게 이해할 수 있도록 작성하라.""")
-
-elif style == "초간결형":
-    st.caption("최소 문장")
-    st.code("""보고서 작성. 핵심만.""")
-
-
-
-# -------------------------------
-# 프롬프트 미리보기
-# -------------------------------
-st.markdown("### 📌 현재 입력 미리보기")
-st.info("현재 입력 내용이 실시간으로 반영됩니다")
-
-preview_situation = st.session_state.get("situation_input", "").strip()
-preview_goal = st.session_state.get("goal_input", "").strip()
-preview_extra = extra_input.strip()
-
-# 🔥 입력 부족 체크
-if not preview_goal:
-    st.warning("⚠ 목표가 없습니다 → '무엇을 얻고 싶은지' 입력하세요")
-
-if len(preview_situation) < 10:
-    st.warning("⚠ 상황이 부족합니다 → 배경을 조금 더 구체적으로 입력하세요")
-
-if preview_situation or preview_goal:
-    preview_text = f"""
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    with col2:
+        if st.button("이메일 작성"):
+            st.session_state.selected_template = "이메일 작성" 
+            base_situation = "민원인 또는 내부 직원에게 이메일을 보내야 하는 상황"
+            base_goal = "정중하고 명확한 업무 이메일 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    with col3:
+        if st.button("계획서 작성"):
+            st.session_state.selected_template = "계획서 작성" 
+            base_situation = "사업 또는 프로젝트 계획서를 작성해야 하는 상황"
+            base_goal = "실행 가능하고 설득력 있는 계획서 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    # 2행
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        if st.button("보도자료 작성"):
+            st.session_state.selected_template = "보도자료 작성" 
+            base_situation = "기관의 정책 또는 사업을 외부에 알리기 위한 보도자료를 작성해야 하는 상황"
+            base_goal = "언론에 적합한 형식의 명확하고 신뢰감 있는 보도자료 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    with col5:
+        if st.button("국민신문고 답변"):
+            st.session_state.selected_template = "국민신문고 답변" 
+            base_situation = "국민신문고 민원에 대해 공식 답변을 작성해야 하는 상황"
+            base_goal = "정중하고 법적 문제 없이 명확한 민원 답변 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    with col6:
+        if st.button("정보공개청구 답변"):
+            st.session_state.selected_template = "정보공개청구 답변" 
+            base_situation = "정보공개청구 요청에 대해 답변을 작성해야 하는 상황"
+            base_goal = "관련 법령을 준수하면서 명확한 정보 제공 답변 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+
+    # 3행
+    col7, col8, col9 = st.columns(3)
+
+    with col7:
+        if st.button("행사 시나리오"):
+            st.session_state.selected_template = "행사 시나리오" 
+            base_situation = "위원회, 행사 또는 공식 일정 진행을 위한 시나리오를 작성해야 하는 상황"
+            base_goal = "행사 흐름이 자연스럽고 진행이 원활한 시나리오 작성"
+            apply_template(base_situation, base_goal, template_mode)
+
+            # if template_mode == "새로 적용 (기존 내용 교체)":
+            #     st.session_state.situation_input = base_situation
+            #     st.session_state.goal_input = base_goal
+            #     st.success("템플릿이 새로 적용되었습니다")
+
+            # st.session_state.situation_input = (
+            #     st.session_state.situation_input + " / " + base_situation
+            #     if st.session_state.situation_input else base_situation
+            # )
+
+            # st.session_state.goal_input = (
+            #     st.session_state.goal_input + " / " + base_goal
+            #     if st.session_state.goal_input else base_goal
+            # )
+
+            # st.success("기존 입력에 템플릿이 추가되었습니다")
+
+    extra_input = st.text_area(
+        "추가 요구사항",
+        height=80,
+        placeholder="예: 간부 보고용, 1페이지 요약, 쉬운 표현, 표 없이 문장형으로 작성"
+    )
+
+    situation = st.text_area(
+        "상황",
+        height=100,
+        key="situation_input"
+    )
+
+    goal = st.text_area(
+        "목표",
+        height=100,
+        key="goal_input"
+    )
+
+    st.info(f"현재 입력 상태: {st.session_state.selected_template or '자유 입력 기반'}")
+
+    style = st.radio(
+        "스타일 선택",
+        ["전문가형", "간결형", "초간결형"]
+    )
+
+    with st.expander("좋은 질문 예시 보기"):
+        st.markdown("""
+    예시:
+
+    상황: 지자체 AI 교육 프로그램 운영 사례 분석  
+    목표: 정책 수립 참고를 위한 사례 정리  
+
+    → 좋은 질문 특징:
+    - 상황 명확
+    - 목표 구체적
+    - 결과 방향 있음
+    """)
+
+    # 설명
+    if style == "전문가형":
+        st.caption("구조 + 설명 포함 (학습용)")
+        st.code("""1. 역할 (Role)
+    너는 공공기관 보고서 작성 전문가다.
+
+    2. 목표 (Goal)
+    상급자가 빠르게 이해할 수 있는 보고서를 작성한다.
+
+    3. 조건 (Instructions)
+    - 핵심 위주로 작성
+    - 논리 구조 유지
+    - 불필요한 표현 제거
+
+    4. 출력 형식 (Format)
+    - 제목 + 본문 구조
+    """)
+
+    elif style == "간결형":
+        st.caption("실무용 문장형")
+        st.code("""공공기관 보고서를 작성하되, 핵심만 간결하게 정리하고 상급자가 빠르게 이해할 수 있도록 작성하라.""")
+
+    elif style == "초간결형":
+        st.caption("최소 문장")
+        st.code("""보고서 작성. 핵심만.""")
+
+
+
+    # -------------------------------
+    # 프롬프트 미리보기
+    # -------------------------------
+    st.markdown("### 📌 현재 입력 미리보기")
+    st.info("현재 입력 내용이 실시간으로 반영됩니다")
+
+    preview_situation = st.session_state.get("situation_input", "").strip()
+    preview_goal = st.session_state.get("goal_input", "").strip()
+    preview_extra = extra_input.strip()
+
+    # 🔥 입력 부족 체크
+    if not preview_goal:
+        st.warning("⚠ 목표가 없습니다 → '무엇을 얻고 싶은지' 입력하세요")
+
+    if len(preview_situation) < 10:
+        st.warning("⚠ 상황이 부족합니다 → 배경을 조금 더 구체적으로 입력하세요")
+
+    if preview_situation or preview_goal:
+        preview_text = f"""
 [상황]
 {preview_situation if preview_situation else "-"}
 
@@ -599,308 +597,312 @@ if preview_situation or preview_goal:
 {preview_extra if preview_extra else "-"}
 
 """
-    st.code(preview_text)
-else:
-    st.caption("아직 입력된 내용이 없습니다.")
+        st.code(preview_text)
+    else:
+        st.caption("아직 입력된 내용이 없습니다.")
 
-st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
+    st.caption(f"오늘 남은 사용 횟수: {MAX_REQUEST - st.session_state.request_count}회")
 
-# -------------------------------
-# 🔥 적용 전문가 표시 (여기에 추가)
-# -------------------------------
-auto_detect = detect_task_type(preview_situation, preview_goal)
+    # -------------------------------
+    # 🔥 적용 전문가 표시 (여기에 추가)
+    # -------------------------------
+    auto_detect = detect_task_type(preview_situation, preview_goal)
 
-# 🔥 모드 기준 결정
-active_mode = st.session_state.selected_template or auto_detect or "문서 작성"
+    # 🔥 모드 기준 결정
+    active_mode = st.session_state.selected_template or auto_detect or "문서 작성"
 
-st.caption(f"적용 모드: {active_mode}")
+    st.caption(f"적용 모드: {active_mode}")
 
-# -------------------------------
-# 기존 코드
-# -------------------------------
-st.markdown("### 🧠 프롬프트 생성을 위해 AI가 내부적으로 참고하는 요청")
-st.caption("이 내용은 최종 사용자가 직접 복사해 쓰는 프롬프트가 아니라, 최종 프롬프트를 만들기 위한 내부 설계안입니다.")
+    # -------------------------------
+    # 기존 코드
+    # -------------------------------
+    st.markdown("### 🧠 프롬프트 생성을 위해 AI가 내부적으로 참고하는 요청")
+    st.caption("이 내용은 최종 사용자가 직접 복사해 쓰는 프롬프트가 아니라, 최종 프롬프트를 만들기 위한 내부 설계안입니다.")
 
-# 🔥 질문 미리보기 (모드 반영)
+    # 🔥 질문 미리보기 (모드 반영)
+    question_prompt = build_question_preview(
+        active_mode,
+        preview_situation,
+        preview_goal,
+        preview_extra,
+        style
+    )
+    st.code(question_prompt, language="markdown")
+    # -------------------------------
+    # 프롬프트 생성
+    # -------------------------------
+    if ui_mode == "전문가 모드":
+        st.markdown("## STEP 2. 프롬프트 생성")
+        if st.button("프롬프트 생성"):
+            if not check_user_limit():
+                st.error("오늘 사용 가능한 요청 횟수를 초과했습니다.")
 
-
-# -------------------------------
-# 프롬프트 생성
-# -------------------------------
-if ui_mode == "전문가 모드":
-    st.markdown("## STEP 2. 프롬프트 생성")
-    if st.button("프롬프트 생성"):
-        if not check_user_limit():
-            st.error("오늘 사용 가능한 요청 횟수를 초과했습니다.")
-
-        else:
-            allowed, cost = check_budget(limit_krw=1000)
-
-            if not allowed:
-                st.error("현재 사용량이 많아 잠시 후 다시 시도해주세요.")
             else:
-                with st.spinner("생성 중..."):
-                    try:
-                        question_prompt  = build_question_preview(
-                            active_mode,
-                            st.session_state.situation_input,
-                            st.session_state.goal_input,
-                            extra_input,
-                            style
-                        )
+                allowed, cost = check_budget(limit_krw=1000)
 
-                        # 🔥 기존 generate_prompt 호출 교체
-                        result, tokens = generate_prompt(
-                            question_prompt,
-                            style
-                        )
-                        # # 🔥 평가 실행
-                        eval_text, _ = evaluate_prompt(result, "전문가형")
-
-                        # 🔥 점수 추출
-                        score = 0
-                        try:
-                            score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
-                            score = int(score_line)
-                            st.session_state.current_score = score
-                        except:
-                            score = 50  # fallback
-
-                        # 🔥 점수 표시
-                        st.markdown("### 프롬프트 품질")
-
-                        st.metric("점수", f"{score} / 100")
-
-                        # 🔥 점수 기반 추천
-                        if score < 60:
-                            st.error("⚠ 낮은 품질 → 반드시 개선하세요")
-                            st.warning("👉 자동 개선 버튼 사용 추천")
-
-                        elif score < 80:
-                            st.warning("👉 조금만 개선하면 더 좋아집니다")
-
-                        else:
-                            st.success("✅ 바로 사용 가능한 프롬프트입니다")
-
-                        # 🔥 평가 내용 (이해용)
-                        with st.expander("왜 이 점수인가요?"):
-                            st.write(eval_text)
-                            
-                        # 🔥 평가 결과 저장 (여기에 추가)
-                        st.session_state.prompt_score_text = eval_text
-                        st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
-                        st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
-
-                        add_usage(tokens)
-
-                        # ✅ 요청 카운트 증가
-                        st.session_state.request_count += 1
-
-                        st.session_state.last_prompt = result
-                        st.session_state.history.append(result)
-
-                        st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
-
-                    except Exception as e:
-                        st.error(f"오류 발생: {e}")
-
-                    # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
-                    if st.session_state.last_prompt:
-                        st.markdown("### 생성된 프롬프트")
-
-                        st.code(st.session_state.last_prompt, language="markdown")
-
-                        copy_button(st.session_state.last_prompt, "copy_gen_fixed")
-
-                        st.markdown("### 🤖 AI로 바로 실행")
-
-                        col1, col2, col3, col4 = st.columns(4)
-
-                        with col1:
-                            st.link_button("ChatGPT 열기", "https://chat.openai.com")
-
-                        with col2:
-                            st.link_button("Gemini 열기", "https://gemini.google.com")
-
-                        with col3:
-                            st.link_button("Claude 열기", "https://claude.ai")
-
-                        with col4:
-                            st.link_button("Perplexity 열기", "https://www.perplexity.ai")
-
-                        st.caption("※ 이 프롬프트를 AI 서비스에 입력하면 결과가 생성됩니다.")
-
-# -------------------------------
-# 프롬프트 평가
-# -------------------------------
-# 🔥 자동 개선 추천
-if ui_mode == "전문가 모드" and st.session_state.last_prompt:
-    if st.session_state.low_quality:
-        st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
-refine_clicked = False
-if ui_mode == "전문가 모드":
-    st.markdown("## STEP 3. 개선")
-
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        if st.session_state.high_quality:
-            st.caption("이미 완성도가 높습니다")
-            refine_clicked = st.button("🚀 프롬프트 개선")
-        else:
-            refine_clicked = st.button("🚀 프롬프트 개선")
-
-
-    # -------------------------------
-    # 프롬프트 개선
-    # -------------------------------
-    st.subheader("### 프롬프트 개선")
-
-    feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 마케팅 느낌으로 등")
-
-    if refine_clicked:
-
-        if st.session_state.get("refine_running"):
-            st.warning("이미 개선 작업이 진행 중입니다.")
-        
-        else:
-            st.session_state.refine_running = True
-
-            try:
-                if not st.session_state.last_prompt:
-                    st.warning("먼저 프롬프트를 생성하세요.")
-
-                elif not check_user_limit():
-                    st.error("오늘 사용 가능한 요청 횟수를 초과했습니다.")
-
+                if not allowed:
+                    st.error("현재 사용량이 많아 잠시 후 다시 시도해주세요.")
                 else:
-                    allowed, cost = check_budget(limit_krw=1000)
-
-                    if not allowed:
-                        st.error("현재 사용량이 많아 잠시 후 다시 시도해주세요.")
-
-                    else:
-                        with st.spinner("개선 중..."):
-
-                            st.session_state.prev_score = st.session_state.current_score
-
-                            result, tokens = refine_prompt(
-                                st.session_state.last_prompt,
-                                feedback,
+                    with st.spinner("생성 중..."):
+                        try:
+                            question_prompt  = build_question_preview(
+                                active_mode,
+                                st.session_state.situation_input,
+                                st.session_state.goal_input,
+                                extra_input,
                                 style
                             )
 
-                            add_usage(tokens)
-                            st.session_state.request_count += 1
-
-                            st.session_state.history.append(result)
-                            st.session_state.last_prompt = result
-
-                            st.markdown("### 개선된 프롬프트")
-                            st.code(result, language="markdown")
-                            copy_button(result, "copy_refine")
-
-                            # 🔥 개선 후 점수 재평가
+                            # 🔥 기존 generate_prompt 호출 교체
+                            result, tokens = generate_prompt(
+                                question_prompt,
+                                style
+                            )
+                            # # 🔥 평가 실행
                             eval_text, _ = evaluate_prompt(result, "전문가형")
 
-                            new_score = 0
+                            # 🔥 점수 추출
+                            score = 0
                             try:
                                 score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
-                                new_score = int(score_line)
+                                score = int(score_line)
+                                st.session_state.current_score = score
                             except:
-                                new_score = 50
+                                score = 50  # fallback
 
-                            st.session_state.current_score = new_score
+                            # 🔥 점수 표시
+                            st.markdown("### 프롬프트 품질")
 
-                            # 🔥 점수 비교
-                            if st.session_state.prev_score is not None:
+                            st.metric("점수", f"{score} / 100")
 
-                                before = st.session_state.prev_score
-                                after = st.session_state.current_score
+                            # 🔥 점수 기반 추천
+                            if score < 60:
+                                st.error("⚠ 낮은 품질 → 반드시 개선하세요")
+                                st.warning("👉 자동 개선 버튼 사용 추천")
 
-                                st.markdown("### 📊 개선 결과")
+                            elif score < 80:
+                                st.warning("👉 조금만 개선하면 더 좋아집니다")
 
-                                if after > before:
-                                    st.success(f"이전: {before}점 → 개선 후: {after}점 (+{after - before})")
-                                elif after == before:
-                                    st.info(f"이전: {before}점 → 개선 후: {after}점 (변화 없음)")
-                                else:
-                                    st.error(f"이전: {before}점 → 개선 후: {after}점 (-{before - after})")
+                            else:
+                                st.success("✅ 바로 사용 가능한 프롬프트입니다")
+
+                            # 🔥 평가 내용 (이해용)
+                            with st.expander("왜 이 점수인가요?"):
+                                st.write(eval_text)
+                                
+                            # 🔥 평가 결과 저장 (여기에 추가)
+                            st.session_state.prompt_score_text = eval_text
+                            st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
+                            st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
+
+                            add_usage(tokens)
+
+                            # ✅ 요청 카운트 증가
+                            st.session_state.request_count += 1
+
+                            st.session_state.last_prompt = result
+                            st.session_state.history.append(result)
+
+                            st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
+
+                        except Exception as e:
+                            st.error(f"오류 발생: {e}")
+
+                        # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
+                        if st.session_state.last_prompt:
+                            st.markdown("### 생성된 프롬프트")
+
+                            st.code(st.session_state.last_prompt, language="markdown")
+
+                            copy_button(st.session_state.last_prompt, "copy_gen_fixed")
+
+                            st.markdown("### 🤖 AI로 바로 실행")
+
+                            col1, col2, col3, col4 = st.columns(4)
+
+                            with col1:
+                                st.link_button("ChatGPT 열기", "https://chat.openai.com")
+
+                            with col2:
+                                st.link_button("Gemini 열기", "https://gemini.google.com")
+
+                            with col3:
+                                st.link_button("Claude 열기", "https://claude.ai")
+
+                            with col4:
+                                st.link_button("Perplexity 열기", "https://www.perplexity.ai")
+
+                            st.caption("※ 이 프롬프트를 AI 서비스에 입력하면 결과가 생성됩니다.")
+
+
+        # 🔥 자동 개선 추천
+        if ui_mode == "전문가 모드" and st.session_state.last_prompt:
+            if st.session_state.low_quality:
+                st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
+        refine_clicked = False
+        if ui_mode == "전문가 모드":
+            st.markdown("## STEP 3. 개선")
+
+            col1, col2 = st.columns([1, 2])
+
+            with col1:
+                if st.session_state.high_quality:
+                    st.caption("이미 완성도가 높습니다")
+                    refine_clicked = st.button("🚀 프롬프트 개선")
+                else:
+                    refine_clicked = st.button("🚀 프롬프트 개선")
+
+
+        # -------------------------------
+        # 프롬프트 개선
+        # -------------------------------
+        st.subheader("### 프롬프트 개선")
+
+        feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 마케팅 느낌으로 등")
+
+        if refine_clicked:
+
+            if st.session_state.get("refine_running"):
+                st.warning("이미 개선 작업이 진행 중입니다.")
+            
+            else:
+                st.session_state.refine_running = True
+
+                try:
+                    if not st.session_state.last_prompt:
+                        st.warning("먼저 프롬프트를 생성하세요.")
+
+                    elif not check_user_limit():
+                        st.error("오늘 사용 가능한 요청 횟수를 초과했습니다.")
+
+                    else:
+                        allowed, cost = check_budget(limit_krw=1000)
+
+                        if not allowed:
+                            st.error("현재 사용량이 많아 잠시 후 다시 시도해주세요.")
+
+                        else:
+                            with st.spinner("개선 중..."):
+
+                                st.session_state.prev_score = st.session_state.current_score
+
+                                result, tokens = refine_prompt(
+                                    st.session_state.last_prompt,
+                                    feedback,
+                                    style
+                                )
+
+                                add_usage(tokens)
+                                st.session_state.request_count += 1
+
+                                st.session_state.history.append(result)
+                                st.session_state.last_prompt = result
+
+                                st.markdown("### 개선된 프롬프트")
+                                st.code(result, language="markdown")
+                                copy_button(result, "copy_refine")
+
+                                # 🔥 개선 후 점수 재평가
+                                eval_text, _ = evaluate_prompt(result, "전문가형")
+
+                                new_score = 0
+                                try:
+                                    score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
+                                    new_score = int(score_line)
+                                except:
+                                    new_score = 50
+
+                                st.session_state.current_score = new_score
+
+                                # 🔥 점수 비교
+                                if st.session_state.prev_score is not None:
+
+                                    before = st.session_state.prev_score
+                                    after = st.session_state.current_score
+
+                                    st.markdown("### 📊 개선 결과")
+
+                                    if after > before:
+                                        st.success(f"이전: {before}점 → 개선 후: {after}점 (+{after - before})")
+                                    elif after == before:
+                                        st.info(f"이전: {before}점 → 개선 후: {after}점 (변화 없음)")
+                                    else:
+                                        st.error(f"이전: {before}점 → 개선 후: {after}점 (-{before - after})")
+
+                except Exception as e:
+                    st.error(f"오류 발생: {e}")
+
+                finally:
+                    st.session_state.refine_running = False
+
+    # -------------------------------
+    # 히스토리 & 비교
+    # -------------------------------
+    if ui_mode == "전문가 모드":
+
+        st.markdown("## STEP 4. 결과 히스토리")
+
+
+        if st.session_state.history:
+            for i, item in enumerate(st.session_state.history):
+                with st.expander(f"버전 {i+1}"):
+                    st.code(item, language="markdown")
+
+                    copy_button(item, f"copy_hist_{i}")
+
+    # -------------------------------
+    # Before / After 비교
+    # -------------------------------
+    st.subheader("개선 비교 (Before → After)")
+
+    if len(st.session_state.history) >= 2:
+
+        st.markdown("### 이전")
+        with st.container():
+            st.code(st.session_state.history[-2], language="markdown")
+            copy_button(st.session_state.history[-2], "copy_before")
+
+        st.divider()
+
+        st.markdown("### 현재")
+        with st.container():
+            st.code(st.session_state.history[-1], language="markdown")
+            copy_button(st.session_state.history[-1], "copy_after")
+
+        # 🔥 여기 추가
+        st.divider()
+        st.markdown("### 변경된 부분 (Diff)")
+
+        st.caption("※ + 추가 / - 삭제된 내용입니다")
+
+        import difflib
+
+        before = st.session_state.history[-2]
+        after = st.session_state.history[-1]
+
+        diff = difflib.ndiff(
+            before.splitlines(),
+            after.splitlines()
+        )
+
+        st.code("\n".join(diff), language="diff")
+
+        # -------------------------------
+        # 🔥 AI 개선 설명 추가
+        # -------------------------------
+        st.divider()
+        st.markdown("### AI 개선 설명")
+
+        with st.spinner("AI가 개선 이유를 분석 중입니다..."):
+            try:
+                explanation, tokens = explain_diff(before, after)
+
+                add_usage(tokens)
+
+                st.write(explanation)
+                copy_button(explanation, "copy_explain")
 
             except Exception as e:
-                st.error(f"오류 발생: {e}")
-
-            finally:
-                st.session_state.refine_running = False
-
-# -------------------------------
-# 히스토리 & 비교
-# -------------------------------
-if ui_mode == "전문가 모드":
-
-    st.markdown("## STEP 4. 결과 히스토리")
-
-
-    if st.session_state.history:
-        for i, item in enumerate(st.session_state.history):
-            with st.expander(f"버전 {i+1}"):
-                st.code(item, language="markdown")
-
-                copy_button(item, f"copy_hist_{i}")
-
-# -------------------------------
-# Before / After 비교
-# -------------------------------
-st.subheader("개선 비교 (Before → After)")
-
-if len(st.session_state.history) >= 2:
-
-    st.markdown("### 이전")
-    with st.container():
-        st.code(st.session_state.history[-2], language="markdown")
-        copy_button(st.session_state.history[-2], "copy_before")
-
-    st.divider()
-
-    st.markdown("### 현재")
-    with st.container():
-        st.code(st.session_state.history[-1], language="markdown")
-        copy_button(st.session_state.history[-1], "copy_after")
-
-    # 🔥 여기 추가
-    st.divider()
-    st.markdown("### 변경된 부분 (Diff)")
-
-    st.caption("※ + 추가 / - 삭제된 내용입니다")
-
-    import difflib
-
-    before = st.session_state.history[-2]
-    after = st.session_state.history[-1]
-
-    diff = difflib.ndiff(
-        before.splitlines(),
-        after.splitlines()
-    )
-
-    st.code("\n".join(diff), language="diff")
-
-    # -------------------------------
-    # 🔥 AI 개선 설명 추가
-    # -------------------------------
-    st.divider()
-    st.markdown("### AI 개선 설명")
-
-    with st.spinner("AI가 개선 이유를 분석 중입니다..."):
-        try:
-            explanation, tokens = explain_diff(before, after)
-
-            add_usage(tokens)
-
-            st.write(explanation)
-            copy_button(explanation, "copy_explain")
-
-        except Exception as e:
-            st.error(f"설명 생성 오류: {e}")
+                st.error(f"설명 생성 오류: {e}")
 
 
