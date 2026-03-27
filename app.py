@@ -1,5 +1,6 @@
 import streamlit as st
 import html
+import re
 import streamlit.components.v1 as components
 from prompt_engine import explain_diff
 from prompt_engine import (
@@ -9,7 +10,6 @@ from prompt_engine import (
     refine_prompt,
     parse_user_input,
     detect_task_type,
-    convert_prompt_to_sentence
 )
 
 from data_manager import (
@@ -67,7 +67,11 @@ def build_question_preview(mode, situation, goal, extra, style):
 """.strip()
 
 def render_prompt_box(title, text):
-    safe_text = html.escape(text)
+    cleaned = text.strip()
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    cleaned = re.sub(r'(\d+\.\s[^\n]+)\n\n', r'\1\n', cleaned)
+
+    safe_text = html.escape(cleaned)
 
     st.markdown(f"#### {title}")
     st.markdown(
@@ -82,7 +86,7 @@ def render_prompt_box(title, text):
             overflow-wrap:anywhere;
             font-family:monospace;
             font-size:14px;
-            line-height:1.5;
+            line-height:1.35;
         ">{safe_text}</div>
         """,
         unsafe_allow_html=True
@@ -270,11 +274,11 @@ if ui_mode == "간결 모드":
                     situation_part,
                     goal_part,
                     "",
-                    "간결형"
+                    "전문가형"
                 )
 
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "간결형")
+                structured_result, tokens1 = generate_prompt(preview_text, "전문가형")
                 sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
 
                 st.markdown("### 결과")
