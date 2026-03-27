@@ -269,6 +269,27 @@ def generate_prompt(preview_text, style, max_tokens=700):
 
     return request_chat(system_prompt, user_input, max_tokens)
 
+def convert_prompt_to_sentence(prompt_text, max_tokens=400):
+    ensure_client()
+
+    system_prompt = """
+너는 구조형 프롬프트를 초보자도 바로 이해할 수 있는 자연스러운 문장형 프롬프트로 바꾸는 전문가다.
+
+규칙:
+- 의미는 유지
+- 너무 딱딱한 항목형 구조는 자연스러운 요청문으로 바꿀 것
+- 불필요한 설명 금지
+- 최종 결과는 복사해서 바로 AI에 넣을 수 있는 프롬프트여야 함
+"""
+
+    user_input = f"""
+다음 구조형 프롬프트를 자연스러운 문장형 프롬프트로 바꿔라:
+
+{prompt_text}
+"""
+
+    return request_chat(system_prompt, user_input, max_tokens=max_tokens)
+
 def evaluate_prompt(prompt, style, max_tokens=500):
     prompt = prompt.strip() if prompt else ""
     style_instruction = get_style_instruction(style)
