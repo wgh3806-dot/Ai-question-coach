@@ -901,39 +901,40 @@ elif ui_mode == "심화 모드":
             # -------------------------------
             # Before / After 비교
             # -------------------------------
-            st.subheader("개선 비교 (Before → After)")
+
+
+            st.subheader("변경된 부분")
 
             if len(st.session_state.history) >= 2:
-
-                st.markdown("### 이전")
-                with st.container():
-                    st.code(st.session_state.history[-2], language="markdown")
-                    copy_button(st.session_state.history[-2], "copy_before")
-
-                st.divider()
-
-                st.markdown("### 현재")
-                with st.container():
-                    st.code(st.session_state.history[-1], language="markdown")
-                    copy_button(st.session_state.history[-1], "copy_after")
-
-                # 🔥 여기 추가
-                st.divider()
-                st.markdown("### 변경된 부분 (Diff)")
-
                 st.caption("※ + 추가 / - 삭제된 내용입니다")
 
                 import difflib
 
-                before = st.session_state.history[-2]
-                after = st.session_state.history[-1]
+                before = st.session_state.history[-2].splitlines()
+                after = st.session_state.history[-1].splitlines()
 
-                diff = difflib.ndiff(
-                    before.splitlines(),
-                    after.splitlines()
+                diff_lines = list(
+                    difflib.unified_diff(
+                        before,
+                        after,
+                        lineterm=""
+                    )
                 )
 
-                st.code("\n".join(diff), language="diff")
+                cleaned_diff = [
+                    line for line in diff_lines
+                    if not line.startswith("---")
+                    and not line.startswith("+++")
+                    and not line.startswith("@@")
+                ]
+
+                if cleaned_diff:
+                    st.code("\n".join(cleaned_diff), language="diff")
+                else:
+                    st.info("변경된 내용이 없습니다.")
+
+                before_text = st.session_state.history[-2]
+                after_text = st.session_state.history[-1]
 
                 # -------------------------------
                 # 🔥 AI 개선 설명 추가
