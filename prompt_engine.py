@@ -134,6 +134,15 @@ def detect_task_type(situation, goal):
 def get_style_instruction(style):
     if style == "간결형":
         return "구조를 유지하되 자연스러운 문장형으로 간결하게 작성하라."
+    elif style == "문장형":
+        return """
+        출력 형식:
+        - 전체를 자연스러운 요청 문장으로 작성할 것
+        - 역할(Role), 목표(Goal), 조건(Instructions), 출력 형식(Format)을 모두 포함할 것
+        - 항목 나열형보다 연결된 문장형 프롬프트를 우선할 것
+        - 초보자가 그대로 복사해 AI에 붙여넣어도 잘 작동하도록 충분히 구체적으로 작성할 것
+        - 설명문 없이 최종 프롬프트 본문만 출력할 것
+        """
     elif style == "초간결형":
         return "최소 문장으로 핵심만 전달하라. 불필요한 표현 금지."
     else:
@@ -239,7 +248,8 @@ def generate_prompt(preview_text, style, max_tokens=700):
 
     system_prompt = f"""
 너는 생성형 AI 질문 코치 시스템이다.
-
+st.text_area("구조형 프롬프트", value=result, height=220)
+st.text_area("문장형 프롬프트", value=sentence_result, height=220)
 목표:
 사용자가 바로 사용할 수 있는 "완성된 프롬프트"를 만든다.
 
@@ -269,22 +279,28 @@ def generate_prompt(preview_text, style, max_tokens=700):
 
     return request_chat(system_prompt, user_input, max_tokens)
 
-def convert_prompt_to_sentence(prompt_text, max_tokens=400):
+def convert_prompt_to_sentence(prompt_text, max_tokens=500):
     ensure_client()
 
     system_prompt = """
-너는 구조형 프롬프트를 초보자도 바로 이해할 수 있는 자연스러운 문장형 프롬프트로 바꾸는 전문가다.
+너는 구조형 프롬프트를 초보자도 바로 복사해서 사용할 수 있는 자연스러운 문장형 프롬프트로 바꾸는 전문가다.
 
-규칙:
-- 의미는 유지
-- 너무 딱딱한 항목형 구조는 자연스러운 요청문으로 바꿀 것
-- 불필요한 설명 금지
-- 최종 결과는 복사해서 바로 AI에 넣을 수 있는 프롬프트여야 함
+반드시 아래 원칙을 지켜라.
+- 구조형 프롬프트의 핵심 의미를 유지할 것
+- 역할(Role), 목표(Goal), 조건(Instructions), 출력 형식(Format)을 빠뜨리지 말 것
+- 결과는 항목 나열형보다 자연스러운 요청문 형태로 만들 것
+- 단, 너무 짧게 줄이지 말고 실제로 AI가 잘 이해할 수 있게 충분히 구체적으로 작성할 것
+- 최종 결과는 사용자가 그대로 복사해 AI에 붙여넣을 수 있어야 함
+- 군더더기 설명 없이 프롬프트 본문만 출력할 것
+
+좋은 예시 느낌:
+너는 공공기관 보고서 작성 전문가다. 아래 상황과 목표를 바탕으로 보고서를 작성해줘. 핵심 내용은 논리적으로 정리하고, 사실 기반으로 작성하며, 불확실한 정보는 단정하지 말아줘. 문체는 공공기관 실무에 맞게 유지하고, 결과는 제목, 핵심 요약, 본문 순서로 정리해줘.
 """
 
     user_input = f"""
-다음 구조형 프롬프트를 자연스러운 문장형 프롬프트로 바꿔라:
+다음 구조형 프롬프트를 위 원칙에 따라 충분히 자연스러운 문장형 프롬프트로 바꿔라.
 
+[구조형 프롬프트]
 {prompt_text}
 """
 

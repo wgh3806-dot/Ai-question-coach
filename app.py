@@ -66,6 +66,28 @@ def build_question_preview(mode, situation, goal, extra, style):
 {style}
 """.strip()
 
+def render_prompt_box(title, text):
+    safe_text = html.escape(text)
+
+    st.markdown(f"#### {title}")
+    st.markdown(
+        f"""
+        <div style="
+            border:1px solid #d1d5db;
+            border-radius:10px;
+            padding:14px;
+            background:#f8fafc;
+            white-space:pre-wrap;
+            word-break:break-word;
+            overflow-wrap:anywhere;
+            font-family:monospace;
+            font-size:14px;
+            line-height:1.5;
+        ">{safe_text}</div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def copy_button(text, key):
     safe_text = json.dumps(text)
     button_id = f"copy_btn_{key}"
@@ -252,25 +274,21 @@ if ui_mode == "간결 모드":
                 )
 
                 # 3. 최종 프롬프트 생성
-                result, tokens = generate_prompt(preview_text, "간결형")
-
-                # 4. 결과 출력
-                sentence_result, sentence_tokens = convert_prompt_to_sentence(result)
+                structured_result, tokens1 = generate_prompt(preview_text, "간결형")
+                sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
 
                 st.markdown("### 결과")
 
-                st.markdown("#### 1. 구조형 프롬프트")
-                st.code(result, language="markdown")
-                copy_button(result, "copy_simple_structured")
+                render_prompt_box("1. 구조형 프롬프트", structured_result)
+                copy_button(structured_result, "copy_simple_structured")
 
-                st.markdown("#### 2. 문장형 프롬프트")
-                st.code(sentence_result, language="markdown")
+                render_prompt_box("2. 문장형 프롬프트", sentence_result)
                 copy_button(sentence_result, "copy_simple_sentence")
 
                 st.success("두 가지 형식으로 생성되었습니다. 편한 형태를 복사해 사용하세요.")
                 st.caption("구조형은 정밀한 요청에, 문장형은 초보자용 복사-붙여넣기에 적합합니다.")
 
-                add_usage(tokens + sentence_tokens)
+                add_usage(tokens1 + tokens2)
                 st.session_state.request_count += 1
 
 
