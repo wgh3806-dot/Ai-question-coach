@@ -136,6 +136,21 @@ def copy_button(text, key):
         height=70,
     )
 
+def render_ai_service_links():
+    st.markdown("## 🔗 AI 서비스 바로가기")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.link_button("ChatGPT", "https://chat.openai.com", use_container_width=True)
+    with col2:
+        st.link_button("Gemini", "https://gemini.google.com", use_container_width=True)
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.link_button("Claude", "https://claude.ai", use_container_width=True)
+    with col4:
+        st.link_button("Perplexity", "https://www.perplexity.ai", use_container_width=True)
+
 # def apply_template(base_situation, base_goal, template_mode):
 #     if template_mode == "새로 적용 (기존 내용 교체)":
 #         st.session_state.situation_input = base_situation
@@ -170,20 +185,7 @@ AI가 당신의 질문을 분석하고
 
 st.divider()
 
-st.markdown("## 🔗 AI 서비스 바로가기")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.link_button("ChatGPT", "https://chat.openai.com")
-with col2:
-    st.link_button("Gemini", "https://gemini.google.com")
-
-col3, col4 = st.columns(2)
-with col3:
-    st.link_button("Claude", "https://claude.ai")
-with col4:
-    st.link_button("Perplexity", "https://www.perplexity.ai")
-    
 # -------------------------------
 # 세션 초기화
 # -------------------------------
@@ -310,6 +312,10 @@ if ui_mode == "간결 모드":
 
                 add_usage(tokens1 + tokens2)
                 st.session_state.request_count += 1
+
+                st.divider()
+                st.caption("복사한 프롬프트를 아래 AI 서비스에 바로 붙여넣어 사용해보세요.")
+                render_ai_service_links()
 
 
 elif ui_mode == "심화 모드":
@@ -790,19 +796,7 @@ elif ui_mode == "심화 모드":
 
             copy_button(st.session_state.last_prompt, "copy_gen_fixed")
 
-            st.markdown("## 🔗 AI 서비스 바로가기")
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.link_button("ChatGPT", "https://chat.openai.com", use_container_width=True)
-            with col2:
-                st.link_button("Gemini", "https://gemini.google.com", use_container_width=True)
-
-            col3, col4 = st.columns(2)
-            with col3:
-                st.link_button("Claude", "https://claude.ai", use_container_width=True)
-            with col4:
-                st.link_button("Perplexity", "https://www.perplexity.ai", use_container_width=True)
+            render_ai_service_links()
 
             st.caption("※ 이 프롬프트를 AI 서비스에 입력하면 결과가 생성됩니다.")
 
