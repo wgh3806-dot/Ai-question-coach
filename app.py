@@ -92,6 +92,19 @@ def render_prompt_box(title, text):
         unsafe_allow_html=True
     )
 
+def strip_code_fence(text):
+    text = (text or "").strip()
+
+    if text.startswith("```markdown"):
+        text = text[len("```markdown"):].strip()
+    elif text.startswith("```"):
+        text = text[len("```"):].strip()
+
+    if text.endswith("```"):
+        text = text[:-3].strip()
+
+    return text
+
 def copy_button(text, key):
     safe_text = json.dumps(text)
     button_id = f"copy_btn_{key}"
@@ -280,6 +293,9 @@ if ui_mode == "간결 모드":
                 # 3. 최종 프롬프트 생성
                 structured_result, tokens1 = generate_prompt(preview_text, "전문가형")
                 sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
+
+                structured_result = strip_code_fence(structured_result)
+                sentence_result = strip_code_fence(sentence_result)
 
                 st.markdown("### 결과")
 
@@ -713,6 +729,8 @@ elif ui_mode == "심화 모드":
                                 question_prompt,
                                 style
                             )
+                            result = strip_code_fence(result)
+
                             # # 🔥 평가 실행
                             eval_text, _ = evaluate_prompt(result, "전문가형")
 
