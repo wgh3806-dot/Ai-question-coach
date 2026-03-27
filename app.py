@@ -614,35 +614,6 @@ elif ui_mode == "심화 모드":
     # - 목표 구체적
     # - 결과 방향 있음
     # """)
-    st.markdown("### 스타일 예시")
-
-    # 설명
-    if style == "전문가형":
-        st.caption("구조 + 설명 포함 (학습용)")
-        st.code("""1. 역할 (Role)
-    너는 공공기관 보고서 작성 전문가다.
-
-    2. 목표 (Goal)
-    상급자가 빠르게 이해할 수 있는 보고서를 작성한다.
-
-    3. 조건 (Instructions)
-    - 핵심 위주로 작성
-    - 논리 구조 유지
-    - 불필요한 표현 제거
-
-    4. 출력 형식 (Format)
-    - 제목 + 본문 구조
-    """)
-
-    elif style == "간결형":
-        st.caption("실무용 문장형")
-        st.code("""공공기관 보고서를 작성하되, 핵심만 간결하게 정리하고 상급자가 빠르게 이해할 수 있도록 작성하라.""")
-
-    elif style == "초간결형":
-        st.caption("최소 문장")
-        st.code("""보고서 작성. 핵심만.""")
-
-
 
     # -------------------------------
     # 프롬프트 미리보기
@@ -693,18 +664,17 @@ elif ui_mode == "심화 모드":
     # -------------------------------
     # 기존 코드
     # -------------------------------
-    st.markdown("### 🧠 AI가 읽는 요청 구조")
-    st.caption("AI가 더 정확한 프롬프트를 만들기 위해 내부적으로 정리한 설계안입니다.")
-
-    # 🔥 질문 미리보기 (모드 반영)
     question_prompt = build_question_preview(
-        active_mode,
-        preview_situation,
-        preview_goal,
-        preview_extra,
-        style
+    active_mode,
+    preview_situation,
+    preview_goal,
+    preview_extra,
+    style
     )
-    st.code(question_prompt, language="markdown")
+
+    with st.expander("AI가 읽는 요청 구조 보기"):
+        st.caption("AI가 더 정확한 프롬프트를 만들기 위해 내부적으로 정리한 설계안입니다.")
+        st.code(question_prompt, language="markdown")
     # -------------------------------
     # 프롬프트 생성
     # -------------------------------
@@ -821,7 +791,7 @@ elif ui_mode == "심화 모드":
             # -------------------------------
             # 프롬프트 개선
             # -------------------------------
-            st.subheader("### 프롬프트 개선")
+            st.markdown("### 프롬프트 개선")
 
             feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 마케팅 느낌으로 등")
 
