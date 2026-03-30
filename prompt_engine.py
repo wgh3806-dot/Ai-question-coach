@@ -170,6 +170,52 @@ def get_reliability_rules():
 - 가능하면 근거 방식 포함 (법령, 공식자료, 통계 등)
 """
 
+def get_task_evidence_rules(preview_text):
+    text = (preview_text or "").lower()
+
+    rules = """
+[작업 성격별 근거 규칙]
+- 작업 성격에 맞는 근거를 사용할 것
+- 모든 작업에 동일한 근거를 기계적으로 적용하지 말 것
+- 법령, 정책, 운영정보, 공식자료, 통계, 일정, 연락처, 예약정보 등은 작업 목적에 따라 우선순위를 다르게 둘 것
+"""
+
+    if any(keyword in text for keyword in ["계획", "일정", "견학", "방문", "출장", "투어", "벤치마킹"]):
+        return rules + """
+- 일정 계획, 견학, 방문, 벤치마킹 작업에서는 법령보다 공식 홈페이지, 기관 안내자료, 운영시간, 예약 여부, 위치, 연락처, 프로그램 운영 여부, 이동 동선 등 실무 확인 정보에 우선순위를 둘 것
+- 변동 가능성이 큰 항목은 '확인 필요'로 표시할 것
+"""
+
+    elif any(keyword in text for keyword in ["보고서", "정책", "기획", "계획서", "분석", "검토"]):
+        return rules + """
+- 보고서, 정책 검토, 기획, 분석 작업에서는 공공기관 공식 문서, 정책 자료, 통계, 연구자료, 보도자료, 기관 발간자료 등 신뢰 가능한 근거를 우선 사용할 것
+- 법령이나 지침이 직접 관련되는 경우에는 해당 기준을 반영할 것
+"""
+
+    elif any(keyword in text for keyword in ["민원", "신문고", "답변", "정보공개", "공문", "행정"]):
+        return rules + """
+- 민원 답변, 정보공개, 공문, 행정 답변 작업에서는 관련 법령, 지침, 행정 기준, 공식 절차를 우선 근거로 사용할 것
+- 불명확한 경우 단정하지 말고 확인 필요 사항으로 분리할 것
+"""
+
+    elif any(keyword in text for keyword in ["이메일", "안내문", "공지", "홍보", "보도자료"]):
+        return rules + """
+- 이메일, 안내문, 공지, 홍보, 보도자료 작업에서는 공식 안내 내용, 기관 확인 정보, 행사 정보, 일정, 위치, 연락처 등 실제 전달 정확성이 중요한 정보를 우선 사용할 것
+- 법령은 직접 관련이 있을 때만 반영할 것
+"""
+
+    elif any(keyword in text for keyword in ["정보 탐색", "조사", "리서치", "비교", "추천", "찾아줘"]):
+        return rules + """
+- 정보 탐색, 조사, 비교, 추천 작업에서는 공식 홈페이지, 기관 소개자료, 신뢰 가능한 보도자료, 공개 통계, 제품/서비스 공식 문서 등 확인 가능한 자료를 우선 사용할 것
+- 광고성 표현, 추정, 과장, 검증되지 않은 후기 기반 단정은 금지할 것
+"""
+
+    else:
+        return rules + """
+- 특별한 유형이 명확하지 않다면 공식 문서, 기관 안내자료, 공개 통계, 신뢰 가능한 설명 자료 등 확인 가능한 근거를 우선 사용할 것
+- 작업 목적에 맞지 않는 법령·정책·통계·운영정보를 억지로 끼워 넣지 말 것
+"""
+
 def generate_dynamic_expert(situation, goal):
     text = f"{situation} {goal}"
 
@@ -255,6 +301,7 @@ def generate_prompt(preview_text, style, max_tokens=700):
 
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
+    task_evidence_rules = get_task_evidence_rules(preview_text)
 
     structure_block = ""
     if style != "문장형":
@@ -280,6 +327,8 @@ def generate_prompt(preview_text, style, max_tokens=700):
 사용자가 바로 사용할 수 있는 "완성된 프롬프트"를 만든다.
 
 {reliability}
+
+{task_evidence_rules}
 
 [핵심 규칙]
 - 반드시 프롬프트만 생성
@@ -343,6 +392,7 @@ def convert_prompt_to_sentence(prompt_text, max_tokens=500):
 def evaluate_prompt(prompt, style, max_tokens=500):
     prompt = prompt.strip() if prompt else ""
     style_instruction = get_style_instruction(style)
+    task_evidence_rules = get_task_evidence_rules(prompt)
 
     if not prompt:
         raise ValueError("평가할 프롬프트가 비어 있습니다.")
@@ -370,6 +420,8 @@ def evaluate_prompt(prompt, style, max_tokens=500):
 - 신뢰성 최우선
 - 불필요한 설명 금지
 
+{task_evidence_rules}
+
 {style_instruction}
 """
 
@@ -385,6 +437,7 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
     last_prompt = last_prompt.strip() if last_prompt else ""
     feedback = feedback.strip() if feedback else "더 명확하고 실무적으로 개선하라."
     style_instruction = get_style_instruction(style)
+    task_evidence_rules = get_task_evidence_rules(last_prompt)
 
     if not last_prompt:
         raise ValueError("수정할 기존 프롬프트가 비어 있습니다.")
@@ -395,9 +448,12 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
 목표:
 - 기존보다 반드시 더 나은 프롬프트 생성
 
+{task_evidence_rules}
+
 최우선:
 - 신뢰성 강화
 - 할루시네이션 제거
+
 
 규칙:
 - 기존 프롬프트보다 반드시 더 나아져야 한다
