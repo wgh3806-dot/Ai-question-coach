@@ -76,16 +76,25 @@ def normalize_prompt_spacing(text):
     # 1.\n역할 → 1. 역할
     text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
-    # 각 항목 앞에 강제 줄바꿈
+    # 모든 항목 앞 줄바꿈 통일
     text = re.sub(r"\n?\s*(\d+\.\s)", r"\n\1", text)
 
-    # 맨 앞 불필요 개행 제거
-    text = text.lstrip("\n")
+    # 불필요한 여러 줄 공백 → 1줄로 축소
+    text = re.sub(r"\n{2,}", "\n\n", text)
 
-    # 항목 사이 정확히 한 줄 띄우기
-    text = re.sub(r"(\d+\..+?)(\n)(\d+\.)", r"\1\n\n\3", text, flags=re.DOTALL)
+    # 항목 사이는 정확히 한 줄만 유지
+    lines = text.split("\n")
+    result = []
 
-    return text.strip()
+    for i, line in enumerate(lines):
+        result.append(line.strip())
+
+        # 다음 줄이 "숫자 시작"이면 한 줄만 추가
+        if i < len(lines) - 1:
+            if re.match(r"\d+\.\s", lines[i + 1]):
+                result.append("")
+
+    return "\n".join(result).strip()
 
 def render_prompt_box(title, text):
     cleaned = normalize_prompt_spacing(text)
@@ -700,7 +709,8 @@ elif ui_mode == "심화 모드":
 
     with st.expander("AI가 읽는 요청 구조 보기"):
         st.caption("AI가 더 정확한 프롬프트를 만들기 위해 내부적으로 정리한 설계안입니다.")
-        render_prompt_box("AI가 읽는 요청 구조", question_prompt)
+        clean_preview = strip_code_fence(question_prompt)
+        render_prompt_box("AI가 읽는 요청 구조", clean_preview)
     # -------------------------------
     # 프롬프트 생성
     # -------------------------------
@@ -917,7 +927,8 @@ elif ui_mode == "심화 모드":
             if st.session_state.history:
                 for i, item in enumerate(st.session_state.history):
                     with st.expander(f"버전 {i+1}"):
-                        render_prompt_box(f"버전 {i+1}", item)
+                        clean_item = strip_code_fence(item)
+                        render_prompt_box(f"버전 {i+1}", clean_item)
 
                         copy_button(item, f"copy_hist_{i}")
 
