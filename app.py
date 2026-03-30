@@ -635,17 +635,17 @@ elif ui_mode == "심화 모드":
 
     if preview_situation or preview_goal:
         preview_text = f"""
-[상황]
-{preview_situation if preview_situation else "-"}
+    [상황]
+    {preview_situation if preview_situation else "-"}
 
-[목표]
-{preview_goal if preview_goal else "-"}
+    [목표]
+    {preview_goal if preview_goal else "-"}
 
-[추가 요구사항]
-{preview_extra if preview_extra else "-"}
+    [추가 요구사항]
+    {preview_extra if preview_extra else "-"}
+    """.strip()
 
-"""
-        st.code(preview_text)
+        render_prompt_box("입력 내용 미리보기", preview_text)
     else:
         st.caption("아직 입력된 내용이 없습니다.")
 
@@ -674,7 +674,7 @@ elif ui_mode == "심화 모드":
 
     with st.expander("AI가 읽는 요청 구조 보기"):
         st.caption("AI가 더 정확한 프롬프트를 만들기 위해 내부적으로 정리한 설계안입니다.")
-        st.code(question_prompt, language="markdown")
+        render_prompt_box("AI가 읽는 요청 구조", question_prompt)
     # -------------------------------
     # 프롬프트 생성
     # -------------------------------
@@ -760,11 +760,12 @@ elif ui_mode == "심화 모드":
 
         # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
         if st.session_state.last_prompt:
-            st.markdown("### 생성된 프롬프트")
+            if st.session_state.last_prompt:
+                st.markdown("### 생성된 프롬프트")
 
-            st.code(st.session_state.last_prompt, language="markdown")
+                render_prompt_box("생성된 프롬프트", st.session_state.last_prompt)
 
-            copy_button(st.session_state.last_prompt, "copy_gen_fixed")
+                copy_button(st.session_state.last_prompt, "copy_gen_fixed")
 
             render_ai_service_links()
 
@@ -821,48 +822,63 @@ elif ui_mode == "심화 모드":
 
                                     st.session_state.prev_score = st.session_state.current_score
 
-                                    result, tokens = refine_prompt(
-                                        st.session_state.last_prompt,
-                                        feedback,
-                                        style
-                                    )
+                                    st.session_state.prev_score = st.session_state.current_score
 
-                                    add_usage(tokens)
+                                    base_prompt = st.session_state.last_prompt
+                                    base_score = st.session_state.current_score or 0
+
+                                    best_prompt = base_prompt
+                                    best_score = base_score
+                                    best_eval_text = st.session_state.prompt_score_text or ""
+
+                                    total_tokens_used = 0
+
+                                    for _ in range(3):
+                                        candidate_prompt, tokens_refine = refine_prompt(
+                                            base_prompt,
+                                            feedback,
+                                            style
+                                        )
+                                        total_tokens_used += tokens_refine
+
+                                        candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
+                                        total_tokens_used += tokens_eval
+
+                                        try:
+                                            score_line = candidate_eval_text.split("[점수]")[1].split("\n")[1].strip()
+                                            candidate_score = int(score_line)
+                                        except:
+                                            candidate_score = 50
+
+                                        if candidate_score > best_score:
+                                            best_prompt = candidate_prompt
+                                            best_score = candidate_score
+                                            best_eval_text = candidate_eval_text
+
+                                    add_usage(total_tokens_used)
                                     st.session_state.request_count += 1
 
-                                    st.session_state.history.append(result)
-                                    st.session_state.last_prompt = result
+                                    st.markdown("### 📊 개선 결과")
 
-                                    st.markdown("### 개선된 프롬프트")
-                                    st.code(result, language="markdown")
-                                    copy_button(result, "copy_refine")
+                                    if best_score > base_score:
+                                        st.session_state.last_prompt = best_prompt
+                                        st.session_state.current_score = best_score
+                                        st.session_state.prompt_score_text = best_eval_text
+                                        st.session_state.history.append(best_prompt)
 
-                                    # 🔥 개선 후 점수 재평가
-                                    eval_text, _ = evaluate_prompt(result, "전문가형")
+                                        st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
-                                    new_score = 0
-                                    try:
-                                        score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
-                                        new_score = int(score_line)
-                                    except:
-                                        new_score = 50
+                                        st.markdown("### 개선된 프롬프트")
+                                        render_prompt_box("개선된 프롬프트", result)
+                                        copy_button(best_prompt, "copy_refine")
 
-                                    st.session_state.current_score = new_score
+                                    elif best_score == base_score:
+                                        st.info(f"이전: {base_score}점 → 개선 후: {best_score}점 (변화 없음)")
+                                        st.warning("자동개선 결과가 기존 프롬프트보다 확실히 좋아지지 않아 기존 프롬프트를 유지합니다.")
 
-                                    # 🔥 점수 비교
-                                    if st.session_state.prev_score is not None:
-
-                                        before = st.session_state.prev_score
-                                        after = st.session_state.current_score
-
-                                        st.markdown("### 📊 개선 결과")
-
-                                        if after > before:
-                                            st.success(f"이전: {before}점 → 개선 후: {after}점 (+{after - before})")
-                                        elif after == before:
-                                            st.info(f"이전: {before}점 → 개선 후: {after}점 (변화 없음)")
-                                        else:
-                                            st.error(f"이전: {before}점 → 개선 후: {after}점 (-{before - after})")
+                                    else:
+                                        st.error(f"이전: {base_score}점 → 개선 후 후보 최고점: {best_score}점")
+                                        st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
 
                     except Exception as e:
                         st.error(f"오류 발생: {e}")

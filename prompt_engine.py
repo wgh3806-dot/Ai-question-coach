@@ -401,6 +401,7 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
 - 구조는 유지해야 한다
 - 모호한 표현은 줄여야 한다
 - 초보자도 이해 가능해야 한다
+- 점수 평가 기준상 기존 프롬프트보다 개선될 가능성이 높은 방향으로만 수정할 것
 - {style_instruction}
 
 반드시 아래 구조를 유지하라:
