@@ -77,7 +77,7 @@ def normalize_prompt_spacing(text):
     text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
     
-    text = re.sub(r"(\d+\.)\s*\n*\s*(역할|목표|조건|출력 형식)", r"\1 \2", text)
+    text = re.sub(r"(\d+\.)\s*\n+\s*(목표|역할|조건|출력 형식)", r"\1 \2", text)
 
     text = re.sub(r"\n(\d+\.)\n", r"\n\1 ", text)
 
@@ -753,6 +753,8 @@ elif ui_mode == "심화 모드":
 
                                 safe_prompt = result
 
+                                risk_detected = False
+
                                 for _ in range(2):  # 최대 2번 재시도
                                     check_text, check_tokens = detect_hallucination(safe_prompt)
                                     tokens += check_tokens
@@ -760,15 +762,17 @@ elif ui_mode == "심화 모드":
                                     if "SAFE" in check_text:
                                         break
 
-                                    if "RISK" in check_text:
-                                        st.warning("⚠ 일부 정보는 검증이 필요하여 자동으로 재구성되었습니다")
-
+                                    risk_detected = True
+     
                                     # 🔥 문제 있으면 재생성
                                     improved_preview = question_prompt + "\n\n[추가 지시]\n- 위 문제를 수정하여 더 신뢰성 높은 프롬프트로 다시 작성하라"
 
                                     safe_prompt, regen_tokens = generate_prompt(improved_preview, style)
                                     safe_prompt = strip_code_fence(safe_prompt)
                                     tokens += regen_tokens
+
+                                if risk_detected:
+                                    st.warning("⚠ 일부 정보는 검증이 필요하여 자동으로 재구성되었습니다")
 
                                 result = safe_prompt
 
