@@ -70,8 +70,10 @@ def build_question_preview(mode, situation, goal, extra, style):
 def render_prompt_box(title, text):
     cleaned = (text or "").strip()
     cleaned = cleaned.replace("```markdown", "").replace("```", "").strip()
+    cleaned = re.sub(r'[ \t]+\n', '\n', cleaned)
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     cleaned = re.sub(r'(\d+\.)\s*\n+\s*', r'\1 ', cleaned)
+    cleaned = re.sub(r'(\d+\.)[ \t]+', r'\1 ', cleaned)
     cleaned = re.sub(r'(\d+\.\s*)(목표|역할|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)',
                      r'\1\2 (\3)', cleaned)
 
@@ -826,8 +828,6 @@ elif ui_mode == "심화 모드":
 
                                     st.session_state.prev_score = st.session_state.current_score
 
-                                    st.session_state.prev_score = st.session_state.current_score
-
                                     base_prompt = st.session_state.last_prompt
                                     base_score = st.session_state.current_score or 0
 
@@ -896,7 +896,7 @@ elif ui_mode == "심화 모드":
             if st.session_state.history:
                 for i, item in enumerate(st.session_state.history):
                     with st.expander(f"버전 {i+1}"):
-                        st.code(item, language="markdown")
+                        render_prompt_box(f"버전 {i+1}", item)
 
                         copy_button(item, f"copy_hist_{i}")
 
