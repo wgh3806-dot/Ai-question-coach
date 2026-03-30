@@ -73,14 +73,17 @@ def normalize_prompt_spacing(text):
     # 코드펜스 제거
     text = text.replace("```markdown", "").replace("```", "").strip()
 
-    # 공백만 있는 빈 줄 제거
-    text = re.sub(r"\n\s*\n+", "\n", text)
-
-    # "1.\n역할" -> "1. 역할"
+    # 1.\n역할 → 1. 역할
     text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
-    # 항목 사이 과도한 빈 줄 제거
-    text = re.sub(r"\n{2,}", "\n", text)
+    # 각 항목 앞에 강제 줄바꿈
+    text = re.sub(r"\n?\s*(\d+\.\s)", r"\n\1", text)
+
+    # 맨 앞 불필요 개행 제거
+    text = text.lstrip("\n")
+
+    # 항목 사이 정확히 한 줄 띄우기
+    text = re.sub(r"(\d+\..+?)(\n)(\d+\.)", r"\1\n\n\3", text, flags=re.DOTALL)
 
     return text.strip()
 
