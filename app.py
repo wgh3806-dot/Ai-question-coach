@@ -67,15 +67,32 @@ def build_question_preview(mode, situation, goal, extra, style):
 {style}
 """.strip()
 
+def normalize_prompt_spacing(text):
+    text = (text or "").strip()
+
+    # 코드펜스 제거
+    text = text.replace("```markdown", "").replace("```", "").strip()
+
+    # 공백만 있는 빈 줄 제거
+    text = re.sub(r"\n\s*\n+", "\n", text)
+
+    # "1.\n역할" -> "1. 역할"
+    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
+
+    # 항목 사이 과도한 빈 줄 제거
+    text = re.sub(r"\n{2,}", "\n", text)
+
+    return text.strip()
+
 def render_prompt_box(title, text):
-    cleaned = (text or "").strip()
-    cleaned = cleaned.replace("```markdown", "").replace("```", "").strip()
+    cleaned = normalize_prompt_spacing(text)
     cleaned = re.sub(r'[ \t]+\n', '\n', cleaned)
-    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
-    cleaned = re.sub(r'(\d+\.)\s*\n+\s*', r'\1 ', cleaned)
     cleaned = re.sub(r'(\d+\.)[ \t]+', r'\1 ', cleaned)
-    cleaned = re.sub(r'(\d+\.\s*)(목표|역할|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)',
-                     r'\1\2 (\3)', cleaned)
+    cleaned = re.sub(
+        r'(\d+\.\s*)(목표|역할|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)',
+        r'\1\2 (\3)',
+        cleaned
+    )
 
     safe_text = html.escape(cleaned)
 
@@ -843,6 +860,7 @@ elif ui_mode == "심화 모드":
                                             feedback,
                                             style
                                         )
+                                        candidate_prompt = strip_code_fence(candidate_prompt)
                                         total_tokens_used += tokens_refine
 
                                         candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
@@ -873,7 +891,7 @@ elif ui_mode == "심화 모드":
                                         st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
                                         st.markdown("### 개선된 프롬프트")
-                                        render_prompt_box("개선된 프롬프트", result)
+                                        render_prompt_box("개선된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine")
 
                                     elif best_score == base_score:
