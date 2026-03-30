@@ -76,11 +76,14 @@ def normalize_prompt_spacing(text):
     # 1.\n역할 → 1. 역할
     text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
-    # 모든 항목 앞 줄바꿈 통일
-    text = re.sub(r"\n?\s*(\d+\.\s)", r"\n\1", text)
+    
+    text = re.sub(r"(\d+\.)\s*\n*\s*(역할|목표|조건|출력 형식)", r"\1 \2", text)
+
+    text = re.sub(r"\n(\d+\.)\n", r"\n\1 ", text)
+
 
     # 불필요한 여러 줄 공백 → 1줄로 축소
-    text = re.sub(r"\n{2,}", "\n\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
 
     # 항목 사이는 정확히 한 줄만 유지
     lines = text.split("\n")
@@ -91,7 +94,7 @@ def normalize_prompt_spacing(text):
 
         # 다음 줄이 "숫자 시작"이면 한 줄만 추가
         if i < len(lines) - 1:
-            if re.match(r"\d+\.\s", lines[i + 1]):
+           if re.match(r"\d+\.\s", lines[i + 1]) and result[-1] != "":
                 result.append("")
 
     return "\n".join(result).strip()
