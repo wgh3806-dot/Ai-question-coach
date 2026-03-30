@@ -67,9 +67,12 @@ def build_question_preview(mode, situation, goal, extra, style):
 """.strip()
 
 def render_prompt_box(title, text):
-    cleaned = text.strip()
+    cleaned = (text or "").strip()
+    cleaned = cleaned.replace("```markdown", "").replace("```", "").strip()
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
-    cleaned = re.sub(r'(\d+\.\s[^\n]+)\n\n', r'\1\n', cleaned)
+    cleaned = re.sub(r'(\d+\.)\s*\n+\s*', r'\1 ', cleaned)
+    cleaned = re.sub(r'(\d+\.\s*)(목표|역할|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)',
+                     r'\1\2 (\3)', cleaned)
 
     safe_text = html.escape(cleaned)
 

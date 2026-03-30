@@ -140,7 +140,9 @@ def get_style_instruction(style):
         - 전체를 자연스러운 요청 문장으로 작성할 것
         - 역할(Role), 목표(Goal), 조건(Instructions), 출력 형식(Format)을 모두 포함할 것
         - 항목 나열형보다 연결된 문장형 프롬프트를 우선할 것
+        - 항목형 나열보다 연결된 한두 개 단락의 요청문 형태를 우선할 것
         - 초보자가 그대로 복사해 AI에 붙여넣어도 잘 작동하도록 충분히 구체적으로 작성할 것
+        - 사용자가 AI에 직접 넣는 실전 요청문처럼 작성할 것
         - 설명문 없이 최종 프롬프트 본문만 출력할 것
         - 공문, 안내문, 의뢰문처럼 쓰지 말 것
         - '귀하', '요청합니다', '직원으로서' 같은 표현 대신 AI에게 직접 지시하는 요청문으로 작성할 것
@@ -254,10 +256,26 @@ def generate_prompt(preview_text, style, max_tokens=700):
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
 
+    structure_block = ""
+    if style != "문장형":
+        structure_block = """
+[프롬프트 구조]
+1. 역할 (Role)
+2. 목표 (Goal)
+3. 조건 (Instructions)
+4. 출력 형식 (Format)
+
+[형식 고정 규칙]
+- 반드시 위 구조를 그대로 따를 것
+- 번호와 제목 형식을 임의로 바꾸지 말 것
+- '역할:', '목표:' 같은 축약 표기는 사용하지 말 것
+- 번호 앞의 점만 쓰거나 형식을 깨뜨리지 말 것
+- 각 항목은 줄바꿈으로 명확히 구분할 것
+"""
+
     system_prompt = f"""
 너는 생성형 AI 질문 코치 시스템이다.
-st.text_area("구조형 프롬프트", value=result, height=220)
-st.text_area("문장형 프롬프트", value=sentence_result, height=220)
+
 목표:
 사용자가 바로 사용할 수 있는 "완성된 프롬프트"를 만든다.
 
@@ -267,27 +285,12 @@ st.text_area("문장형 프롬프트", value=sentence_result, height=220)
 - 반드시 프롬프트만 생성
 - 절대 답변 생성 금지
 - 설명 금지
-- 구조 유지
+- style이 문장형이면 1, 2, 3, 4 번호 구조로 나열하지 말 것
+- 구조형일 때만 정해진 항목 구조를 따를 것
 - ```markdown, ``` 같은 코드펜스를 붙이지 말 것
 - 제목 설명 없이 프롬프트 본문만 출력할 것
 
-[프롬프트 구조]
-1. 역할 (Role)
-2. 목표 (Goal)
-3. 조건 (Instructions)
-4. 출력 형식 (Format)
-
-[형식 고정 규칙]
-- 반드시 아래 형식을 그대로 따를 것
-- 섹션 제목은 정확히 다음과 같이 출력할 것:
-  1. 역할 (Role)
-  2. 목표 (Goal)
-  3. 조건 (Instructions)
-  4. 출력 형식 (Format)
-- '역할:', '목표:' 같은 축약 표기는 사용하지 말 것
-- 번호 앞의 점만 쓰거나 형식을 깨뜨리지 말 것
-- 각 섹션은 줄바꿈으로 명확히 구분할 것
-- 최종 결과는 예시와 동일한 구조형 프롬프트 형식으로 작성할 것
+{structure_block}
 
 [Role 작성 규칙]
 - 역할(Role)은 사용자의 소속, 기관명, 부서명이 아니라 수행해야 할 전문 역할로 작성할 것
