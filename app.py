@@ -746,6 +746,32 @@ elif ui_mode == "심화 모드":
                             )
                             result = strip_code_fence(result)
 
+                            # 🔥 hallucination 검증 추가
+                            from prompt_engine import detect_hallucination
+
+                            if active_mode == "정보 탐색":
+
+                                safe_prompt = result
+
+                                for _ in range(2):  # 최대 2번 재시도
+                                    check_text, check_tokens = detect_hallucination(safe_prompt)
+                                    tokens += check_tokens
+
+                                    if "SAFE" in check_text:
+                                        break
+
+                                    if "RISK" in check_text:
+                                        st.warning("⚠ 일부 정보는 검증이 필요하여 자동으로 재구성되었습니다")
+
+                                    # 🔥 문제 있으면 재생성
+                                    improved_preview = question_prompt + "\n\n[추가 지시]\n- 위 문제를 수정하여 더 신뢰성 높은 프롬프트로 다시 작성하라"
+
+                                    safe_prompt, regen_tokens = generate_prompt(improved_preview, style)
+                                    safe_prompt = strip_code_fence(safe_prompt)
+                                    tokens += regen_tokens
+
+                                result = safe_prompt
+
                             # # 🔥 평가 실행
                             eval_text, _ = evaluate_prompt(result, "전문가형")
 

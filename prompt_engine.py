@@ -123,7 +123,8 @@ def detect_task_type(situation, goal):
         "무엇", "뭐", "설명", "알려줘", "정리", "비교", "차이",
         "개념", "의미", "이유", "원인", "전망", "동향", "분석",
         "찾아줘", "검색", "조사", "소개", "장단점", "특징", "보여줘",
-        "팩트"
+        "팩트",
+        "추천", "순위", "리스트", "top", "best"
     ]
 
     if any(keyword in text for keyword in info_keywords):
@@ -214,6 +215,14 @@ def get_task_evidence_rules(preview_text):
         return rules + """
 - 정보 탐색, 조사, 비교, 추천 작업에서는 공식 홈페이지, 기관 소개자료, 신뢰 가능한 보도자료, 공개 통계, 제품/서비스 공식 문서 등 확인 가능한 자료를 우선 사용할 것
 - 광고성 표현, 추정, 과장, 검증되지 않은 후기 기반 단정은 금지할 것
+
+[정보탐색 전용 강화 규칙]
+- 존재하지 않는 기관, 장소, 서비스, 프로그램 절대 생성 금지
+- 실제 존재 여부가 확인되지 않은 대상은 반드시 '확인 필요'로 표시할 것
+- 구체적인 이름, 수치, 위치는 검증 가능한 경우에만 작성할 것
+- 추천 시 반드시 '선정 기준' 또는 '판단 근거'를 포함할 것
+- "가능성이 높다", "일반적으로 알려져 있다" 등 모호한 표현 사용 금지
+- 추정 기반 설명 금지
 """
 
     else:
@@ -453,6 +462,42 @@ def evaluate_prompt(prompt, style, max_tokens=500):
 """
 
     return request_chat(system_prompt, user_input, max_tokens=max_tokens)
+
+def detect_hallucination(prompt_text, max_tokens=300):
+    ensure_client()
+
+    system_prompt = """
+너는 생성된 프롬프트의 신뢰성을 검증하는 전문가다.
+
+다음 기준으로 판단하라:
+
+[검증 기준]
+- 존재하지 않는 기관/장소/프로그램이 포함되어 있는가
+- 근거 없는 추천이 있는가
+- 사실 확인 없이 단정하는 표현이 있는가
+- 검증 불가능한 구체 정보가 포함되어 있는가
+
+출력 형식:
+[판정]
+SAFE 또는 RISK
+
+[이유]
+- 간단히 설명
+
+규칙:
+- 반드시 SAFE 또는 RISK로만 판단
+- 설명은 최소화
+"""
+
+    user_input = f"""
+다음 프롬프트를 검증하라:
+
+{prompt_text}
+"""
+
+    result, tokens = request_chat(system_prompt, user_input, max_tokens)
+
+    return result, tokens
 
 def refine_prompt(last_prompt, feedback, style, max_tokens=500):
     last_prompt = last_prompt.strip() if last_prompt else ""
