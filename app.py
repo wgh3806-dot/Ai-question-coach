@@ -131,9 +131,7 @@ def render_prompt_box(title, text):
 
     # 항목 본문 줄 앞 공백 제거
     lines = cleaned.splitlines()
-    normalized_lines = []
-    for line in lines:
-        normalized_lines.append(line.strip())
+    normalized_lines = [line.strip() for line in lines]
 
     cleaned = "\n".join(normalized_lines)
 
@@ -156,7 +154,8 @@ def render_prompt_box(title, text):
             border:1px solid #d1d5db;
             border-radius:10px;
             padding:14px;
-            background:#f8fafc;
+            background-color: var(--secondary-background-color, #f3f4f6);
+            color: var(--text-color, #111827);
             white-space:pre-wrap;
             word-break:break-word;
             overflow-wrap:anywhere;
