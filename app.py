@@ -73,85 +73,68 @@ def normalize_prompt_spacing(text):
     # 코드펜스 제거
     text = text.replace("```markdown", "").replace("```", "").strip()
 
-    # 1.\n역할 → 1. 역할
-    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
-
-    
-    text = re.sub(r"(\d+\.)\s*\n+\s*(목표|역할|조건|출력 형식)", r"\1 \2", text)
-
-    text = re.sub(r"\n(\d+\.)\n", r"\n\1 ", text)
-
-
-    # 불필요한 여러 줄 공백 → 1줄로 축소
-    text = re.sub(r"\n{3,}", "\n\n", text)
-
-    # 항목 사이는 정확히 한 줄만 유지
-    lines = text.split("\n")
-    result = []
-
-    for i, line in enumerate(lines):
-        result.append(line.strip())
-
-        # 다음 줄이 "숫자 시작"이면 한 줄만 추가
-        if i < len(lines) - 1:
-           if re.match(r"\d+\.\s", lines[i + 1]) and result[-1] != "":
-                result.append("")
-
-    return "\n".join(result).strip()
-
-def render_prompt_box(title, text):
-    cleaned = (text or "").strip()
-
-    # 코드펜스 제거
-    cleaned = cleaned.replace("```markdown", "").replace("```", "").strip()
-
     # 줄 끝 공백 제거
-    cleaned = re.sub(r"[ \t]+\n", "\n", cleaned)
+    text = re.sub(r"[ \t]+\n", "\n", text)
 
     # 1.\n역할 -> 1. 역할
-    cleaned = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", cleaned)
+    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
-    # "2.    목표" -> "2. 목표"
-    cleaned = re.sub(r"(\d+\.)[ \t]+", r"\1 ", cleaned)
+    # 2.    목표 -> 2. 목표
+    text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
 
     # 제목 줄 앞 들여쓰기 제거
-    cleaned = re.sub(
+    text = re.sub(
         r"^[ \t]*(\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))",
         r"\1",
-        cleaned,
+        text,
         flags=re.MULTILINE
     )
 
-    # 제목 다음 빈 줄 제거
-    cleaned = re.sub(
+    # 제목 다음 여러 줄 공백 제거
+    text = re.sub(
         r"((?:\d+\.\s*(?:역할|목표|조건|출력 형식)\s*\((?:Role|Goal|Instructions|Format)\)))\n+",
         r"\1\n",
-        cleaned
+        text
     )
 
-    # 항목 본문 줄 앞 공백 제거
-    lines = cleaned.splitlines()
-    normalized_lines = [line.strip() for line in lines]
+    # 각 줄 앞뒤 공백 제거
+    lines = [line.strip() for line in text.splitlines()]
 
-    cleaned = "\n".join(normalized_lines)
+    cleaned_lines = []
+    prev_was_heading = False
 
-    # 항목 사이 빈 줄은 정확히 1줄만
-    cleaned = re.sub(
-        r"\n+(?=\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))",
-        r"\n\n",
-        cleaned
-    )
+    for line in lines:
+        if not line:
+            continue
 
-    # 과도한 전체 빈 줄 최종 정리
-    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+        is_heading = bool(
+            re.match(r"^\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)$", line)
+        )
 
+        # 새 항목 시작 전에는 빈 줄 1개만 넣기
+        if is_heading and cleaned_lines:
+            if cleaned_lines[-1] != "":
+                cleaned_lines.append("")
+
+        cleaned_lines.append(line)
+        prev_was_heading = is_heading
+
+    text = "\n".join(cleaned_lines).strip()
+
+    # 혹시 남은 과도한 빈 줄 최종 정리
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text
+
+def render_prompt_box(title, text):
+    cleaned = normalize_prompt_spacing(text)
     safe_text = html.escape(cleaned)
 
     st.markdown(f"#### {title}")
     st.markdown(
         f"""
         <div style="
-            border:1px solid #d1d5db;
+            border:1px solid rgba(128,128,128,0.25);
             border-radius:10px;
             padding:14px;
             background-color: var(--secondary-background-color, #f3f4f6);
