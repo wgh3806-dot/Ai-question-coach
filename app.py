@@ -100,14 +100,45 @@ def normalize_prompt_spacing(text):
     return "\n".join(result).strip()
 
 def render_prompt_box(title, text):
-    cleaned = normalize_prompt_spacing(text)
+    cleaned = (text or "").strip()
+
+    # 코드펜스 제거
+    cleaned = cleaned.replace("```markdown", "").replace("```", "").strip()
+
+    # 줄 끝 공백 제거
     cleaned = re.sub(r'[ \t]+\n', '\n', cleaned)
+
+    # 과도한 빈 줄 줄이기
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+
+    # "2.\n   목표 (Goal)" -> "2. 목표 (Goal)"
+    cleaned = re.sub(r'(\d+\.)\s*\n+\s*', r'\1 ', cleaned)
+
+    # "2.    목표 (Goal)" -> "2. 목표 (Goal)"
     cleaned = re.sub(r'(\d+\.)[ \t]+', r'\1 ', cleaned)
+
+    # 제목 줄 앞 들여쓰기 제거
     cleaned = re.sub(
-        r'(\d+\.\s*)(목표|역할|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)',
-        r'\1\2 (\3)',
+        r'^[ \t]*(\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))',
+        r'\1',
+        cleaned,
+        flags=re.MULTILINE
+    )
+
+    # 제목 다음 과한 빈 줄 제거
+    cleaned = re.sub(
+        r'((?:\d+\.\s*(?:역할|목표|조건|출력 형식)\s*\((?:Role|Goal|Instructions|Format)\)))\n{2,}',
+        r'\1\n',
         cleaned
     )
+
+    # 본문 줄 들여쓰기 제거
+    lines = cleaned.splitlines()
+    normalized_lines = []
+    for line in lines:
+        normalized_lines.append(line.strip())
+
+    cleaned = "\n".join(normalized_lines)
 
     safe_text = html.escape(cleaned)
 
@@ -124,7 +155,7 @@ def render_prompt_box(title, text):
             overflow-wrap:anywhere;
             font-family:monospace;
             font-size:14px;
-            line-height:1.35;
+            line-height:1.5;
         ">{safe_text}</div>
         """,
         unsafe_allow_html=True
@@ -906,7 +937,6 @@ elif ui_mode == "심화 모드":
                                             feedback,
                                             style
                                         )
-                                        candidate_prompt = strip_code_fence(candidate_prompt)
                                         total_tokens_used += tokens_refine
 
                                         candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
@@ -928,6 +958,7 @@ elif ui_mode == "심화 모드":
 
                                     st.markdown("### 📊 개선 결과")
 
+                                    # 점수가 올랐을 때
                                     if best_score > base_score:
                                         st.session_state.last_prompt = best_prompt
                                         st.session_state.current_score = best_score
@@ -940,13 +971,23 @@ elif ui_mode == "심화 모드":
                                         render_prompt_box("개선된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine")
 
+                                    # 점수 변화 없음
                                     elif best_score == base_score:
                                         st.info(f"이전: {base_score}점 → 개선 후: {best_score}점 (변화 없음)")
-                                        st.warning("자동개선 결과가 기존 프롬프트보다 확실히 좋아지지 않아 기존 프롬프트를 유지합니다.")
+                                        st.warning("자동개선 결과가 기존과 동일 수준이어서 기존 프롬프트를 유지합니다.")
 
+                                        st.markdown("### 현재 유지된 프롬프트")
+                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        copy_button(best_prompt, "copy_refine_same")
+
+                                    # 더 낮은 경우
                                     else:
-                                        st.error(f"이전: {base_score}점 → 개선 후 후보 최고점: {best_score}점")
+                                        st.error(f"이전: {base_score}점 → 개선 후보 최고점: {best_score}점")
                                         st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
+
+                                        st.markdown("### 현재 유지된 프롬프트")
+                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        copy_button(best_prompt, "copy_refine_keep")
 
                     except Exception as e:
                         st.error(f"오류 발생: {e}")
