@@ -911,7 +911,7 @@ elif ui_mode == "심화 모드":
 
                                     st.session_state.prev_score = st.session_state.current_score
 
-                                    base_prompt = st.session_state.last_prompt
+                                    base_prompt = normalize_prompt_spacing(st.session_state.last_prompt)
                                     base_score = st.session_state.current_score or 0
 
                                     best_prompt = base_prompt
@@ -928,6 +928,10 @@ elif ui_mode == "심화 모드":
                                         )
                                         total_tokens_used += tokens_refine
 
+                                        # 개선 결과를 저장/평가 전에 먼저 정리
+                                        candidate_prompt = strip_code_fence(candidate_prompt)
+                                        candidate_prompt = normalize_prompt_spacing(candidate_prompt)
+
                                         candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
                                         total_tokens_used += tokens_eval
 
@@ -938,7 +942,7 @@ elif ui_mode == "심화 모드":
                                             candidate_score = 50
 
                                         if candidate_score > best_score:
-                                            best_prompt = candidate_prompt
+                                            best_prompt = normalize_prompt_spacing(candidate_prompt)
                                             best_score = candidate_score
                                             best_eval_text = candidate_eval_text
 
@@ -949,6 +953,8 @@ elif ui_mode == "심화 모드":
 
                                     # 점수가 올랐을 때
                                     if best_score > base_score:
+                                        best_prompt = normalize_prompt_spacing(best_prompt)
+
                                         st.session_state.last_prompt = best_prompt
                                         st.session_state.current_score = best_score
                                         st.session_state.prompt_score_text = best_eval_text
@@ -966,6 +972,7 @@ elif ui_mode == "심화 모드":
                                         st.warning("자동개선 결과가 기존과 동일 수준이어서 기존 프롬프트를 유지합니다.")
 
                                         st.markdown("### 현재 유지된 프롬프트")
+                                        best_prompt = normalize_prompt_spacing(best_prompt)
                                         render_prompt_box("현재 유지된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine_same")
 
@@ -975,6 +982,7 @@ elif ui_mode == "심화 모드":
                                         st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
 
                                         st.markdown("### 현재 유지된 프롬프트")
+                                        best_prompt = normalize_prompt_spacing(best_prompt)
                                         render_prompt_box("현재 유지된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine_keep")
 
