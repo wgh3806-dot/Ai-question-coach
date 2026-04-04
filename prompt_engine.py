@@ -1,4 +1,5 @@
 from openai import OpenAI
+from app import normalize_prompt_spacing
 
 client = None
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -570,7 +571,13 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
 위 요청을 반영하여 더 나은 최종 프롬프트를 작성하라.
 """
 
-    return request_chat(system_prompt, user_input, max_tokens=max_tokens)
+     # 최종 프롬프트 생성
+    result, _ = request_chat(system_prompt, user_input, max_tokens=max_tokens)
+
+    # 개선된 프롬프트에 대해 텍스트 정리 적용
+    result = normalize_prompt_spacing(result)
+
+    return result
 
 import json
 
