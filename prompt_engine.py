@@ -1,5 +1,4 @@
 from openai import OpenAI
-import re
 
 client = None
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -261,64 +260,6 @@ def generate_dynamic_expert(situation, goal):
 해당 업무를 가장 잘 수행할 수 있는 전문 역할로 행동하라.
 """
 
-def normalize_prompt_spacing(text):
-    text = (text or "").strip()
-
-    # 코드펜스 제거
-    text = text.replace("```markdown", "").replace("```", "").strip()
-
-    # 줄 끝 공백 제거
-    text = re.sub(r"[ \t]+\n", "\n", text)
-
-    # 1.\n역할 -> 1. 역할
-    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
-
-    # 2.    목표 -> 2. 목표
-    text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
-
-    # 제목 줄 앞 들여쓰기 제거
-    text = re.sub(
-        r"^[ \t]*(\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))",
-        r"\1",
-        text,
-        flags=re.MULTILINE
-    )
-
-    # 제목 다음 여러 줄 공백 제거
-    text = re.sub(
-        r"((?:\d+\.\s*(?:역할|목표|조건|출력 형식)\s*\((?:Role|Goal|Instructions|Format)\)))\n+",
-        r"\1\n",
-        text
-    )
-
-    # 각 줄 앞뒤 공백 제거
-    lines = [line.strip() for line in text.splitlines()]
-
-    cleaned_lines = []
-    prev_was_heading = False
-
-    for line in lines:
-        if not line:
-            continue
-
-        is_heading = bool(
-            re.match(r"^\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)$", line)
-        )
-
-        # 새 항목 시작 전에는 빈 줄 1개만 넣기
-        if is_heading and cleaned_lines:
-            if cleaned_lines[-1] != "":
-                cleaned_lines.append("")
-
-        cleaned_lines.append(line)
-        prev_was_heading = is_heading
-
-    text = "\n".join(cleaned_lines).strip()
-
-    # 혹시 남은 과도한 빈 줄 최종 정리
-    text = re.sub(r"\n{3,}", "\n\n", text)
-
-    return text
 
 def request_chat(system_prompt, user_input, max_tokens=500, model=DEFAULT_MODEL):
     ensure_client()
@@ -592,49 +533,45 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
         raise ValueError("수정할 기존 프롬프트가 비어 있습니다.")
 
     system_prompt = f"""
-    너는 프롬프트 최적화 전문가다.
+너는 프롬프트 최적화 전문가다.
 
-    목표:
-    - 기존보다 반드시 더 나은 프롬프트 생성
+목표:
+- 기존보다 반드시 더 나은 프롬프트 생성
 
-    {task_evidence_rules}
+{task_evidence_rules}
 
-    최우선:
-    - 신뢰성 강화
-    - 할루시네이션 제거
+최우선:
+- 신뢰성 강화
+- 할루시네이션 제거
 
-    규칙:
-    - 기존 프롬프트보다 반드시 더 나아져야 한다
-    - 구조는 유지해야 한다
-    - 모호한 표현은 줄여야 한다
-    - 초보자도 이해 가능해야 한다
-    - 점수 평가 기준상 기존 프롬프트보다 개선될 가능성이 높은 방향으로만 수정할 것
-    - {style_instruction}
 
-    반드시 아래 구조를 유지하라:
-    1. 역할 (Role)
-    2. 목표 (Goal)
-    3. 조건 (Instructions)
-    4. 출력 형식 (Format)
-    """
+규칙:
+- 기존 프롬프트보다 반드시 더 나아져야 한다
+- 구조는 유지해야 한다
+- 모호한 표현은 줄여야 한다
+- 초보자도 이해 가능해야 한다
+- 점수 평가 기준상 기존 프롬프트보다 개선될 가능성이 높은 방향으로만 수정할 것
+- {style_instruction}
+
+반드시 아래 구조를 유지하라:
+1. 역할 (Role)
+2. 목표 (Goal)
+3. 조건 (Instructions)
+4. 출력 형식 (Format)
+"""
 
     user_input = f"""
-    기존 프롬프트:
-    {last_prompt}
+기존 프롬프트:
+{last_prompt}
 
-    사용자 수정 요청:
-    {feedback}
+사용자 수정 요청:
+{feedback}
 
-    위 요청을 반영하여 더 나은 최종 프롬프트를 작성하라.
-    """
+위 요청을 반영하여 더 나은 최종 프롬프트를 작성하라.
+"""
 
-    # 최종 프롬프트 생성
-    result, _ = request_chat(system_prompt, user_input, max_tokens=max_tokens)
+    return request_chat(system_prompt, user_input, max_tokens=max_tokens)
 
-    # 개선된 프롬프트가 생성된 후, 텍스트 간격 정리
-    result = normalize_prompt_spacing(result)
-
-    return result
 import json
 
 def parse_user_input(free_text, max_tokens=300, retry=1):
