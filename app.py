@@ -110,7 +110,7 @@ def normalize_prompt_spacing(text):
     for line in lines:
         if not line:
             if not prev_was_empty:
-            cleaned_lines.append("")
+                cleaned_lines.append("")
             prev_was_empty = True
             continue
 
