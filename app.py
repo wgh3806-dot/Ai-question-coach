@@ -83,6 +83,13 @@ def normalize_prompt_spacing(text):
         text
     )
 
+    # 혹시 남은 케이스 한번 더 정리
+    text = re.sub(
+        r"(\d+\.)\s+([^\n]+)",
+        r"\1 \2",
+        text
+    )
+
     # 2.    목표 -> 2. 목표
     text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
 
