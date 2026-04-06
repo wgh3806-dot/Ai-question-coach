@@ -78,7 +78,7 @@ def normalize_prompt_spacing(text):
 
     # 제목 줄 쪼개진 경우 복구
     text = re.sub(
-        r"(\d+\.)\s*\n+\s*(역할|목표|조건|출력 형식)",
+        r"(\d+\.)\s*\n+\s*([^\n]+)",
         r"\1 \2",
         text
     )
