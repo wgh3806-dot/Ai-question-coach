@@ -76,8 +76,12 @@ def normalize_prompt_spacing(text):
     # 줄 끝 공백 제거
     text = re.sub(r"[ \t]+\n", "\n", text)
 
-    # 1.\n역할 -> 1. 역할
-    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
+    # 제목 줄 쪼개진 경우 복구
+    text = re.sub(
+        r"(\d+\.)\s*\n\s*(역할|목표|조건|출력 형식)",
+        r"\1 \2",
+        text
+    )
 
     # 2.    목표 -> 2. 목표
     text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
@@ -105,7 +109,12 @@ def normalize_prompt_spacing(text):
 
     for line in lines:
         if not line:
+            if not prev_was_empty:
+            cleaned_lines.append("")
+            prev_was_empty = True
             continue
+
+        prev_was_empty = False
 
         is_heading = bool(
             re.match(r"^\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)$", line)
