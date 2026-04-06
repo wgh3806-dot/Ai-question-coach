@@ -78,7 +78,7 @@ def normalize_prompt_spacing(text):
 
     # 제목 줄 쪼개진 경우 복구
     text = re.sub(
-        r"(\d+\.)\s*\n\s*(역할|목표|조건|출력 형식)",
+        r"(\d+\.)\s*\n+\s*(역할|목표|조건|출력 형식)",
         r"\1 \2",
         text
     )
@@ -105,7 +105,7 @@ def normalize_prompt_spacing(text):
     lines = [line.strip() for line in text.splitlines()]
 
     cleaned_lines = []
-    prev_was_heading = False
+    prev_was_empty = False
 
     for line in lines:
         if not line:
@@ -126,11 +126,11 @@ def normalize_prompt_spacing(text):
                 cleaned_lines.append("")
 
         cleaned_lines.append(line)
-        prev_was_heading = is_heading
+    
 
     text = "\n".join(cleaned_lines).strip()
 
-    # 혹시 남은 과도한 빈 줄 최종 정리
+    # 과도한 빈 줄 제거
     text = re.sub(r"\n{3,}", "\n\n", text)
 
     return text
