@@ -558,6 +558,13 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
 2. 목표 (Goal)
 3. 조건 (Instructions)
 4. 출력 형식 (Format)
+
+[형식 고정 규칙]
+- 각 항목은 반드시 "제목 한 줄 + 다음 줄 본문" 구조로 작성할 것
+- 제목과 본문을 같은 줄에 작성하지 말 것
+- 항목 사이에는 줄바꿈 1줄만 허용
+- 불필요한 공백 줄 생성 금지
+- 구조를 절대 재구성하거나 합치지 말 것
 """
 
     user_input = f"""
