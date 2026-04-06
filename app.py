@@ -861,9 +861,8 @@ elif ui_mode == "심화 모드":
         # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
-                # st.markdown("### 생성된 프롬프트")
-
-                render_prompt_box("생성된 프롬프트", st.session_state.last_prompt)
+                st.markdown("### 생성된 프롬프트")
+                render_prompt_box("", result)
 
                 copy_button(st.session_state.last_prompt, "copy_gen_fixed")
 
@@ -973,8 +972,8 @@ elif ui_mode == "심화 모드":
 
                                         st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
-                                        # st.markdown("### 개선된 프롬프트")
-                                        render_prompt_box("개선된 프롬프트", best_prompt)
+                                        st.markdown("### 개선된 프롬프트")
+                                        render_prompt_box("", best_prompt)
                                         copy_button(best_prompt, "copy_refine")
 
                                     # 점수 변화 없음
@@ -984,7 +983,7 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        render_prompt_box("", best_prompt)
                                         copy_button(best_prompt, "copy_refine_same")
 
                                     # 더 낮은 경우
@@ -994,7 +993,7 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        render_prompt_box("", best_prompt)
                                         copy_button(best_prompt, "copy_refine_keep")
 
                     except Exception as e:
