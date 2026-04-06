@@ -86,20 +86,20 @@ def normalize_prompt_spacing(text):
     # 2.    목표 -> 2. 목표
     text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
 
-    # # 제목 줄 앞 들여쓰기 제거
-    # text = re.sub(
-    #     r"^[ \t]*(\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))",
-    #     r"\1",
-    #     text,
-    #     flags=re.MULTILINE
-    # )
+    # 제목 줄 앞 들여쓰기 제거
+    text = re.sub(
+        r"^[ \t]*(\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\))",
+        r"\1",
+        text,
+        flags=re.MULTILINE
+    )
 
-    # # 제목 다음 여러 줄 공백 제거
-    # text = re.sub(
-    #     r"((?:\d+\.\s*(?:역할|목표|조건|출력 형식)\s*\((?:Role|Goal|Instructions|Format)\)))\n+",
-    #     r"\1\n",
-    #     text
-    # )
+    # 제목 다음 여러 줄 공백 제거
+    text = re.sub(
+        r"((?:\d+\.\s*(?:역할|목표|조건|출력 형식)\s*\((?:Role|Goal|Instructions|Format)\)))\n+",
+        r"\1\n",
+        text
+    )
 
     # 각 줄 앞뒤 공백 제거
     lines = [line.strip() for line in text.splitlines()]
@@ -138,8 +138,10 @@ def normalize_prompt_spacing(text):
 def render_prompt_box(title, text):
     cleaned = normalize_prompt_spacing(text)
     safe_text = html.escape(cleaned)
+    safe_text = safe_text.replace("\n", "<br>")
 
     st.markdown(f"#### {title}")
+    st.markdown(safe_text, unsafe_allow_html=True)
     st.markdown(
         f"""
         <div style="
