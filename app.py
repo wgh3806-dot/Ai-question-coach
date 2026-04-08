@@ -126,7 +126,7 @@ def normalize_prompt_spacing(text):
 
     return text
 
-def render_prompt_box(title, text):
+def render_prompt_box(text):
     cleaned = normalize_prompt_spacing(text)
     safe_text = html.escape(cleaned)
 
