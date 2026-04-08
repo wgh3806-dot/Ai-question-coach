@@ -548,16 +548,16 @@ def refine_prompt(last_prompt, feedback, style, max_tokens=500):
 [절대 형식 규칙 - 위반 금지]
 [출력 템플릿 - 반드시 그대로 따를 것]
 
-1. 역할 (Role)
+1. 역할
 [여기에 역할 작성]
 
-2. 목표 (Goal)
+2. 목표
 [여기에 목표 작성]
 
-3. 조건 (Instructions)
+3. 조건
 [여기에 조건 작성]
 
-4. 출력 형식 (Format)
+4. 출력 형식
 [여기에 출력 형식 작성]
 
 [형식 강제 규칙]

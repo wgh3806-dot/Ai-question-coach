@@ -128,10 +128,10 @@ def normalize_prompt_spacing(text):
 
 def is_valid_structure(text):
     return (
-        "1. 역할 (Role)" in text and
-        "2. 목표 (Goal)" in text and
-        "3. 조건 (Instructions)" in text and
-        "4. 출력 형식 (Format)" in text and
+        "1. 역할" in text and
+        "2. 목표" in text and
+        "3. 조건" in text and
+        "4. 출력 형식" in text and
         not re.search(r"\d+\.\s*\n", text)  # 줄 깨짐 방지
     )
 
