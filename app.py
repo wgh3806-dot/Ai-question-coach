@@ -362,7 +362,8 @@ if ui_mode == "간결 모드":
                 render_prompt_box(structured_result)
                 copy_button(structured_result, "copy_simple_structured")
 
-                render_prompt_box("2. 문장형 프롬프트", sentence_result)
+                st.markdown("### 2. 문장형 프롬프트")
+                render_prompt_box(sentence_result)
                 copy_button(sentence_result, "copy_simple_sentence")
 
                 st.success("두 가지 형식으로 생성되었습니다. 편한 형태를 복사해 사용하세요.")
@@ -703,7 +704,8 @@ elif ui_mode == "심화 모드":
     {preview_extra if preview_extra else "-"}
     """.strip()
 
-        render_prompt_box("입력 내용 미리보기", preview_text)
+        st.markdown("### 입력 내용 미리보기")
+        render_prompt_box(preview_text)
     else:
         st.caption("아직 입력된 내용이 없습니다.")
 
@@ -733,7 +735,8 @@ elif ui_mode == "심화 모드":
     with st.expander("AI가 읽는 요청 구조 보기"):
         st.caption("AI가 더 정확한 프롬프트를 만들기 위해 내부적으로 정리한 설계안입니다.")
         clean_preview = strip_code_fence(question_prompt)
-        render_prompt_box("AI가 읽는 요청 구조", clean_preview)
+        st.markdown("### AI가 읽는 요청 구조")
+        render_prompt_box(clean_preview)
     # -------------------------------
     # 프롬프트 생성
     # -------------------------------
@@ -851,8 +854,6 @@ elif ui_mode == "심화 모드":
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
                 st.markdown("### 생성된 프롬프트")
-
-                st.markdown("### 생성된 프롬프트")
                 render_prompt_box(st.session_state.last_prompt)
 
                 copy_button(st.session_state.last_prompt, "copy_gen_fixed")
@@ -964,7 +965,7 @@ elif ui_mode == "심화 모드":
                                         st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
                                         st.markdown("### 개선된 프롬프트")
-                                        render_prompt_box("개선된 프롬프트", best_prompt)
+                                        render_prompt_box(best_prompt)
                                         copy_button(best_prompt, "copy_refine")
 
                                     # 점수 변화 없음
@@ -974,7 +975,8 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        st.markdown("### 현재 유지된 프롬프트")
+                                        render_prompt_box(best_prompt)
                                         copy_button(best_prompt, "copy_refine_same")
 
                                     # 더 낮은 경우
@@ -984,7 +986,8 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
+                                        st.markdown("### 현재 유지된 프롬프트")
+                                        render_prompt_box(best_prompt)
                                         copy_button(best_prompt, "copy_refine_keep")
 
                     except Exception as e:
@@ -1000,7 +1003,8 @@ elif ui_mode == "심화 모드":
                 for i, item in enumerate(st.session_state.history):
                     with st.expander(f"버전 {i+1}"):
                         clean_item = strip_code_fence(item)
-                        render_prompt_box(f"버전 {i+1}", clean_item)
+                        st.markdown(f"### 버전 {i+1}")
+                        render_prompt_box(clean_item)
 
                         copy_button(item, f"copy_hist_{i}")
 
