@@ -1,4 +1,5 @@
 from openai import OpenAI
+import streamlit as st
 
 client = None
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -333,8 +334,8 @@ def build_expert_role(situation, goal, template_type=None):
 
 현장에서 바로 사용할 수 있는 수준으로 작성하라.
 """
-
-def generate_prompt(preview_text, style, max_tokens=700):
+@st.cache_data(ttl=3600)
+def generate_prompt(preview_text, style, max_tokens=500):
 
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
@@ -443,7 +444,7 @@ def convert_prompt_to_sentence(prompt_text, max_tokens=500):
 
     return request_chat(system_prompt, user_input, max_tokens=max_tokens)
 
-def evaluate_prompt(prompt, style, max_tokens=500):
+def evaluate_prompt(prompt, style, max_tokens=300):
     prompt = prompt.strip() if prompt else ""
     style_instruction = get_style_instruction(style)
     task_evidence_rules = get_task_evidence_rules(prompt)
@@ -523,6 +524,7 @@ SAFE 또는 RISK
 
     return result, tokens
 
+@st.cache_data(ttl=3600)
 def refine_prompt(last_prompt, feedback, style, max_tokens=500):
     last_prompt = last_prompt.strip() if last_prompt else ""
     feedback = feedback.strip() if feedback else "더 명확하고 실무적으로 개선하라."
