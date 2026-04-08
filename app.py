@@ -931,7 +931,9 @@ elif ui_mode == "심화 모드":
 
                                     total_tokens_used = 0
 
-                                    for _ in range(3):
+                                    candidates = []
+
+                                    for _ in range(2):
                                         candidate_prompt, tokens_refine = refine_prompt(
                                             base_prompt,
                                             feedback,
@@ -946,19 +948,23 @@ elif ui_mode == "심화 모드":
                                         if not is_valid_structure(candidate_prompt):
                                             continue  # 아예 버림
 
-                                        candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
-                                        total_tokens_used += tokens_eval
+                                        candidates.append(candidate_prompt)
+                                    if not candidates:
+                                        candidates.append(base_prompt)
 
-                                        try:
-                                            score_line = candidate_eval_text.split("[점수]")[1].split("\n")[1].strip()
-                                            candidate_score = int(score_line)
-                                        except:
-                                            candidate_score = 50
+                                    candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
+                                    total_tokens_used += tokens_eval
 
-                                        if candidate_score > best_score and is_valid_structure(candidate_prompt):
-                                            best_prompt = normalize_prompt_spacing(candidate_prompt)
-                                            best_score = candidate_score
-                                            best_eval_text = candidate_eval_text
+                                    try:
+                                        score_line = candidate_eval_text.split("[점수]")[1].split("\n")[1].strip()
+                                        candidate_score = int(score_line)
+                                    except:
+                                        candidate_score = 50
+
+                                    if candidate_score > best_score:
+                                        best_prompt = normalize_prompt_spacing(candidate_prompt)
+                                        best_score = candidate_score
+                                        best_eval_text = candidate_eval_text
 
                                     add_usage(total_tokens_used)
                                     st.session_state.request_count += 1
