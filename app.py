@@ -126,6 +126,15 @@ def normalize_prompt_spacing(text):
 
     return text
 
+def is_valid_structure(text):
+    return (
+        "1. 역할 (Role)" in text and
+        "2. 목표 (Goal)" in text and
+        "3. 조건 (Instructions)" in text and
+        "4. 출력 형식 (Format)" in text and
+        not re.search(r"\d+\.\s*\n", text)  # 줄 깨짐 방지
+    )
+
 def render_prompt_box(text):
     cleaned = normalize_prompt_spacing(text)
     safe_text = html.escape(cleaned)
@@ -934,6 +943,9 @@ elif ui_mode == "심화 모드":
                                         candidate_prompt = strip_code_fence(candidate_prompt)
                                         candidate_prompt = normalize_prompt_spacing(candidate_prompt)
 
+                                        if not is_valid_structure(candidate_prompt):
+                                            continue  # 아예 버림
+
                                         candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
                                         total_tokens_used += tokens_eval
 
@@ -943,7 +955,7 @@ elif ui_mode == "심화 모드":
                                         except:
                                             candidate_score = 50
 
-                                        if candidate_score > best_score:
+                                        if candidate_score > best_score and is_valid_structure(candidate_prompt):
                                             best_prompt = normalize_prompt_spacing(candidate_prompt)
                                             best_score = candidate_score
                                             best_eval_text = candidate_eval_text
