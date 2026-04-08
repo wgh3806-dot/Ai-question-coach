@@ -76,12 +76,8 @@ def normalize_prompt_spacing(text):
     # 줄 끝 공백 제거
     text = re.sub(r"[ \t]+\n", "\n", text)
 
-    # 제목 줄 쪼개진 경우 복구
-    text = re.sub(
-        r"(\d+\.)\s*\n+\s*([^\n]+)",
-        r"\1 \2",
-        text
-    )
+    # 1.\n역할 -> 1. 역할
+    text = re.sub(r"(\d+\.)\s*\n+\s*", r"\1 ", text)
 
     # 2.    목표 -> 2. 목표
     text = re.sub(r"(\d+\.)[ \t]+", r"\1 ", text)
@@ -105,16 +101,11 @@ def normalize_prompt_spacing(text):
     lines = [line.strip() for line in text.splitlines()]
 
     cleaned_lines = []
-    prev_was_empty = False
+    prev_was_heading = False
 
     for line in lines:
         if not line:
-            if not prev_was_empty:
-                cleaned_lines.append("")
-            prev_was_empty = True
             continue
-
-        prev_was_empty = False
 
         is_heading = bool(
             re.match(r"^\d+\.\s*(역할|목표|조건|출력 형식)\s*\((Role|Goal|Instructions|Format)\)$", line)
@@ -126,11 +117,11 @@ def normalize_prompt_spacing(text):
                 cleaned_lines.append("")
 
         cleaned_lines.append(line)
-    
+        prev_was_heading = is_heading
 
     text = "\n".join(cleaned_lines).strip()
 
-    # 과도한 빈 줄 제거
+    # 혹시 남은 과도한 빈 줄 최종 정리
     text = re.sub(r"\n{3,}", "\n\n", text)
 
     return text
@@ -138,10 +129,7 @@ def normalize_prompt_spacing(text):
 def render_prompt_box(title, text):
     cleaned = normalize_prompt_spacing(text)
     safe_text = html.escape(cleaned)
-    safe_text = safe_text.replace("\n", "<br>")
 
-    st.markdown(f"#### {title}")
-    st.markdown(safe_text, unsafe_allow_html=True)
     st.markdown(
         f"""
         <div style="
@@ -370,7 +358,8 @@ if ui_mode == "간결 모드":
 
                 st.markdown("### 결과")
 
-                render_prompt_box("1. 구조형 프롬프트", structured_result)
+                st.markdown("### 1. 구조형 프롬프트")
+                render_prompt_box(structured_result)
                 copy_button(structured_result, "copy_simple_structured")
 
                 render_prompt_box("2. 문장형 프롬프트", sentence_result)
@@ -862,7 +851,9 @@ elif ui_mode == "심화 모드":
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
                 st.markdown("### 생성된 프롬프트")
-                render_prompt_box("", result)
+
+                st.markdown("### 생성된 프롬프트")
+                render_prompt_box(st.session_state.last_prompt)
 
                 copy_button(st.session_state.last_prompt, "copy_gen_fixed")
 
@@ -973,7 +964,7 @@ elif ui_mode == "심화 모드":
                                         st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
                                         st.markdown("### 개선된 프롬프트")
-                                        render_prompt_box("", best_prompt)
+                                        render_prompt_box("개선된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine")
 
                                     # 점수 변화 없음
@@ -983,7 +974,7 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("", best_prompt)
+                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine_same")
 
                                     # 더 낮은 경우
@@ -993,7 +984,7 @@ elif ui_mode == "심화 모드":
 
                                         st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        render_prompt_box("", best_prompt)
+                                        render_prompt_box("현재 유지된 프롬프트", best_prompt)
                                         copy_button(best_prompt, "copy_refine_keep")
 
                     except Exception as e:
