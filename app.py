@@ -368,9 +368,15 @@ if ui_mode == "간결 모드":
                 # 1. 자동 분석
                 situation_part, goal_part = parse_user_input(simple_input)
 
-                # 2. 프롬프트 생성용 질문 구성
+                # 2. 유형 감지 (추가!)
+                task_type = detect_task_type(situation_part, goal_part)
+
+                # 3. mode 결정
+                active_mode = task_type or "문서 작성"
+
+                # 4. 프롬프트 생성용 질문 구성
                 preview_text = build_question_preview(
-                    "문서 작성",
+                    active_mode,
                     situation_part,
                     goal_part,
                     "",
