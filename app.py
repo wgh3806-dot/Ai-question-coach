@@ -11,6 +11,7 @@ from prompt_engine import (
     refine_prompt,
     parse_user_input,
     detect_task_type,
+    convert_prompt_to_sentence
 )
 
 from data_manager import (
@@ -385,7 +386,7 @@ if ui_mode == "간결 모드":
 
                 # 3. 최종 프롬프트 생성
                 structured_result, tokens1 = generate_prompt(preview_text, "간결구조형")
-                sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
+                sentence_result, tokens2 = convert_prompt_to_sentence(structured_result)
 
                 structured_result = strip_code_fence(structured_result)
                 sentence_result = strip_code_fence(sentence_result)
