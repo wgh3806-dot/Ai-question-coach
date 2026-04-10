@@ -1,6 +1,7 @@
 import streamlit as st
 import html
 import re
+import requests
 import streamlit.components.v1 as components
 from prompt_engine import explain_diff
 from prompt_engine import (
@@ -48,6 +49,24 @@ def build_question_preview(mode, situation, goal, extra, style):
     style = (style or "간결형").strip()
     mode = (mode or "문서 작성").strip()
 
+
+    if mode == "간결 모드":
+        return f"""
+{DEFAULT_TRUST_RULES}
+
+[사용자 상황]
+{situation if situation else "-"}
+
+[사용자 목표]
+{goal if goal else "-"}
+
+[요청]
+- 위 내용을 바탕으로 AI에게 바로 사용할 수 있는 간단한 질문을 만들어라
+- 복잡한 구조 만들지 말 것
+- 빠르게 결과를 얻을 수 있도록 작성할 것
+- 사실 기반으로만 답변 유도 (추정 금지)
+""".strip()
+    
     return f"""
 {DEFAULT_TRUST_RULES}
 
@@ -315,8 +334,8 @@ def check_user_limit():
 
 import os
 
-api_key = st.secrets["OPENAI_API_KEY"]
-init_client(api_key)
+# api_key = st.secrets["OPENAI_API_KEY"]
+# init_client(api_key)
 
 with st.expander("사용 방법"):
     st.markdown("""
@@ -351,16 +370,16 @@ if ui_mode == "간결 모드":
 
                 # 2. 프롬프트 생성용 질문 구성
                 preview_text = build_question_preview(
-                    "문서 작성",
+                    "간결 모드",
                     situation_part,
                     goal_part,
                     "",
-                    "전문가형"
+                    "간결형"
                 )
 
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "전문가형")
-                sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
+                structured_result, tokens1 = generate_prompt(preview_text, "간결형", mode="간결 모드")
+                sentence_result, tokens2 = generate_prompt(preview_text, "문장형", mode="간결 모드")
 
                 structured_result = strip_code_fence(structured_result)
                 sentence_result = strip_code_fence(sentence_result)
@@ -772,10 +791,26 @@ elif ui_mode == "심화 모드":
                             )
 
                             # 🔥 기존 generate_prompt 호출 교체
-                            result, tokens = generate_prompt(
-                                question_prompt,
-                                style
+                            # result, tokens = generate_prompt(
+                            #     question_prompt,
+                            #     style
+                            # )
+
+                            response = requests.post(
+                                "https://ai-question-coaching-production.up.railway.app/generate",
+                                json={
+                                    "preview_text": question_prompt,
+                                    "style": style
+                                }
                             )
+
+                            if response.status_code == 200:
+                                result = response.json()["result"]
+                                tokens = 0  # 서버에서 아직 안 주니까 임시
+                            else:
+                                st.error("서버 오류 발생")
+                                result = ""
+                                tokens = 0
                             result = strip_code_fence(result)
 
                             # 🔥 hallucination 검증 추가

@@ -1,7 +1,12 @@
+import os
 from openai import OpenAI
 import streamlit as st
+from dotenv import load_dotenv
 
-client = None
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 DEFAULT_MODEL = "gpt-4o-mini"
 
 
@@ -335,7 +340,35 @@ def build_expert_role(situation, goal, template_type=None):
 현장에서 바로 사용할 수 있는 수준으로 작성하라.
 """
 @st.cache_data(ttl=3600)
-def generate_prompt(preview_text, style, max_tokens=500):
+def generate_prompt(preview_text, style, mode = None, max_tokens=500):
+    # 🔥 여기 추가 (첫 줄 바로 아래)
+    if mode == "간결 모드":
+
+        system_prompt = f"""
+너는 생성형 AI 질문 코치다.
+
+목표:
+사용자가 바로 복사해서 사용할 수 있는 "간단한 질문"을 만든다.
+
+{get_reliability_rules()}
+
+[핵심 규칙]
+- 절대 구조형 프롬프트 만들지 말 것
+- 1~2문장으로 작성할 것
+- 불필요한 조건 제거
+- 빠르게 실행 가능한 질문 작성
+- 설명 금지
+- 프롬프트 본문만 출력
+"""
+
+        user_input = f"""
+아래 내용을 기반으로 간단한 질문을 작성하라.
+
+{preview_text}
+"""
+
+        return request_chat(system_prompt, user_input, max_tokens)
+
 
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
