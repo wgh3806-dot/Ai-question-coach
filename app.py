@@ -370,7 +370,7 @@ if ui_mode == "간결 모드":
 
                 # 2. 프롬프트 생성용 질문 구성
                 preview_text = build_question_preview(
-                    "간결 모드",
+                    "문서 작성",
                     situation_part,
                     goal_part,
                     "",
@@ -378,8 +378,8 @@ if ui_mode == "간결 모드":
                 )
 
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "간결형", mode="간결 모드")
-                sentence_result, tokens2 = generate_prompt(preview_text, "문장형", mode="간결 모드")
+                structured_result, tokens1 = generate_prompt(preview_text, "간결구조형")
+                sentence_result, tokens2 = generate_prompt(preview_text, "문장형")
 
                 structured_result = strip_code_fence(structured_result)
                 sentence_result = strip_code_fence(sentence_result)
