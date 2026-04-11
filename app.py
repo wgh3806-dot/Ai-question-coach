@@ -383,9 +383,10 @@ if ui_mode == "간결 모드":
                     "",
                     "간결형"
                 )
-
+                # 🔥 여기 추가
+                task_type = detect_task_type(situation_part, goal_part) 
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "간결구조형")
+                structured_result, tokens1 = generate_prompt(preview_text, "간결구조형",task_type=task_type)
                 sentence_result, tokens2 = convert_prompt_to_sentence(structured_result)
 
                 structured_result = strip_code_fence(structured_result)

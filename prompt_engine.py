@@ -110,31 +110,77 @@ def detect_task_type(situation, goal):
 
     # 정보 탐색 계열 (우선!)
     info_keywords = [
-        "사례", "무엇", "뭐", "설명", "알려줘", "정리", "비교", "차이",
-        "개념", "의미", "이유", "원인", "전망", "동향", "분석",
-        "찾아줘", "검색", "조사", "소개", "장단점", "특징", "보여줘",
-        "팩트", "추천", "순위", "리스트", "top", "best"
+        "사례", "무엇", "뭐", "설명", "알려줘", "정리", "비교",
+        "방법", "어떻게", "효과", "활용", "적용", "아이디어",
+        "추천", "순위", "리스트", "분석", "동향", "이유", "장단점"
     ]
-    if any(keyword in text for keyword in info_keywords):
-        return "정보 탐색"
-    
-    # 문서 작성 계열
-    if "보도자료" in text:
-        return "보도자료 작성"
-    elif "보고서" in text:
-        return "보고서 작성"
-    elif "이메일" in text or "메일" in text:
-        return "이메일 작성"
-    elif "민원" in text or "신문고" in text:
-        return "국민신문고 답변"
-    elif "정보공개" in text:
-        return "정보공개청구 답변"
-    elif "계획서" in text or ("계획" in text and "작성" in text):
-        return "계획서 작성"
-    elif "행사" in text or "시나리오" in text:
-        return "행사 시나리오"
 
-    return None
+    doc_keywords = {
+        "보도자료 작성": ["보도자료"],
+        "보고서 작성": ["보고서"],
+        "이메일 작성": ["이메일", "메일"],
+        "국민신문고 답변": ["민원", "신문고"],
+        "정보공개청구 답변": ["정보공개"],
+        "계획서 작성": ["계획서", "계획 작성"],
+        "행사 시나리오": ["행사", "시나리오"]
+    }
+
+    # 2. 점수 초기화
+    info_score = 0
+    doc_score = 0
+
+    # 3. 정보탐색 점수 계산
+    for k in info_keywords:
+        if k in text:
+            info_score += 2
+
+    # 4. 문서작성 점수 계산
+    matched_doc_type = None
+    for doc_type, keywords in doc_keywords.items():
+        for k in keywords:
+            if k in text:
+                doc_score += 3
+                matched_doc_type = doc_type
+
+    # 5. 문장 패턴 보정 (핵심)
+    # "알려줘 / 정리해줘 / 추천해줘" → 정보탐색 강제
+    if any(p in text for p in ["알려줘", "정리해줘", "추천해줘", "설명해줘"]):
+        info_score += 3
+
+    # "작성해줘 / 만들어줘" → 문서작성 가중치
+    if any(p in text for p in ["작성", "작성해줘", "만들어줘"]):
+        doc_score += 2
+
+    # 6. 최종 판단 (핵심 로직)
+    # 정보탐색 우선 보호 (중요)
+    if info_score >= doc_score:
+        return "정보 탐색"
+
+    if matched_doc_type:
+        return matched_doc_type
+
+    # 7. fallback
+    return "정보 탐색"
+    # if any(k in text for k in info_keywords):
+    #     return "정보 탐색"
+    
+    # # 문서 작성 계열
+    # if "보도자료" in text:
+    #     return "보도자료 작성"
+    # elif "보고서" in text:
+    #     return "보고서 작성"
+    # elif "이메일" in text or "메일" in text:
+    #     return "이메일 작성"
+    # elif "민원" in text or "신문고" in text:
+    #     return "국민신문고 답변"
+    # elif "정보공개" in text:
+    #     return "정보공개청구 답변"
+    # elif "계획서" in text or ("계획" in text and "작성" in text):
+    #     return "계획서 작성"
+    # elif "행사" in text or "시나리오" in text:
+    #     return "행사 시나리오"
+
+    # return None
 
 def get_style_instruction(style):
     if style == "간결형":
@@ -215,49 +261,49 @@ def get_task_evidence_rules(preview_text):
     text = (preview_text or "").lower()
 
     rules = """
-[작업 성격별 근거 규칙]
-- 작업 성격에 맞는 근거를 사용할 것
-- 모든 작업에 동일한 근거를 기계적으로 적용하지 말 것
-- 법령, 정책, 운영정보, 공식자료, 통계, 일정, 연락처, 예약정보 등은 작업 목적에 따라 우선순위를 다르게 둘 것
-"""
+            [작업 성격별 근거 규칙]
+            - 작업 성격에 맞는 근거를 사용할 것
+            - 모든 작업에 동일한 근거를 기계적으로 적용하지 말 것
+            - 법령, 정책, 운영정보, 공식자료, 통계, 일정, 연락처, 예약정보 등은 작업 목적에 따라 우선순위를 다르게 둘 것
+            """
 
     if any(keyword in text for keyword in ["계획", "일정", "견학", "방문", "출장", "투어", "벤치마킹"]):
         return rules + """
-- 일정 계획, 견학, 방문, 벤치마킹 작업에서는 법령보다 공식 홈페이지, 기관 안내자료, 운영시간, 예약 여부, 위치, 연락처, 프로그램 운영 여부, 이동 동선 등 실무 확인 정보에 우선순위를 둘 것
-- 변동 가능성이 큰 항목은 '확인 필요'로 표시할 것
-"""
+            - 일정 계획, 견학, 방문, 벤치마킹 작업에서는 법령보다 공식 홈페이지, 기관 안내자료, 운영시간, 예약 여부, 위치, 연락처, 프로그램 운영 여부, 이동 동선 등 실무 확인 정보에 우선순위를 둘 것
+            - 변동 가능성이 큰 항목은 '확인 필요'로 표시할 것
+            """
 
     elif any(keyword in text for keyword in ["보고서", "정책", "기획", "계획서", "분석", "검토"]):
         return rules + """
-- 보고서, 정책 검토, 기획, 분석 작업에서는 공공기관 공식 문서, 정책 자료, 통계, 연구자료, 보도자료, 기관 발간자료 등 신뢰 가능한 근거를 우선 사용할 것
-- 법령이나 지침이 직접 관련되는 경우에는 해당 기준을 반영할 것
-"""
+            - 보고서, 정책 검토, 기획, 분석 작업에서는 공공기관 공식 문서, 정책 자료, 통계, 연구자료, 보도자료, 기관 발간자료 등 신뢰 가능한 근거를 우선 사용할 것
+            - 법령이나 지침이 직접 관련되는 경우에는 해당 기준을 반영할 것
+            """
 
     elif any(keyword in text for keyword in ["민원", "신문고", "답변", "정보공개", "공문", "행정"]):
         return rules + """
-- 민원 답변, 정보공개, 공문, 행정 답변 작업에서는 관련 법령, 지침, 행정 기준, 공식 절차를 우선 근거로 사용할 것
-- 불명확한 경우 단정하지 말고 확인 필요 사항으로 분리할 것
-"""
+            - 민원 답변, 정보공개, 공문, 행정 답변 작업에서는 관련 법령, 지침, 행정 기준, 공식 절차를 우선 근거로 사용할 것
+            - 불명확한 경우 단정하지 말고 확인 필요 사항으로 분리할 것
+            """
 
     elif any(keyword in text for keyword in ["이메일", "안내문", "공지", "홍보", "보도자료"]):
         return rules + """
-- 이메일, 안내문, 공지, 홍보, 보도자료 작업에서는 공식 안내 내용, 기관 확인 정보, 행사 정보, 일정, 위치, 연락처 등 실제 전달 정확성이 중요한 정보를 우선 사용할 것
-- 법령은 직접 관련이 있을 때만 반영할 것
-"""
+            - 이메일, 안내문, 공지, 홍보, 보도자료 작업에서는 공식 안내 내용, 기관 확인 정보, 행사 정보, 일정, 위치, 연락처 등 실제 전달 정확성이 중요한 정보를 우선 사용할 것
+            - 법령은 직접 관련이 있을 때만 반영할 것
+            """
 
     elif any(keyword in text for keyword in ["정보 탐색", "조사", "리서치", "비교", "추천", "찾아줘"]):
         return rules + """
-- 정보 탐색, 조사, 비교, 추천 작업에서는 공식 홈페이지, 기관 소개자료, 신뢰 가능한 보도자료, 공개 통계, 제품/서비스 공식 문서 등 확인 가능한 자료를 우선 사용할 것
-- 광고성 표현, 추정, 과장, 검증되지 않은 후기 기반 단정은 금지할 것
+            - 정보 탐색, 조사, 비교, 추천 작업에서는 공식 홈페이지, 기관 소개자료, 신뢰 가능한 보도자료, 공개 통계, 제품/서비스 공식 문서 등 확인 가능한 자료를 우선 사용할 것
+            - 광고성 표현, 추정, 과장, 검증되지 않은 후기 기반 단정은 금지할 것
 
-[정보탐색 전용 강화 규칙]
-- 존재하지 않는 기관, 장소, 서비스, 프로그램 절대 생성 금지
-- 실제 존재 여부가 확인되지 않은 대상은 반드시 '확인 필요'로 표시할 것
-- 구체적인 이름, 수치, 위치는 검증 가능한 경우에만 작성할 것
-- 추천 시 반드시 '선정 기준' 또는 '판단 근거'를 포함할 것
-- "가능성이 높다", "일반적으로 알려져 있다" 등 모호한 표현 사용 금지
-- 추정 기반 설명 금지
-"""
+            [정보탐색 전용 강화 규칙]
+            - 존재하지 않는 기관, 장소, 서비스, 프로그램 절대 생성 금지
+            - 실제 존재 여부가 확인되지 않은 대상은 반드시 '확인 필요'로 표시할 것
+            - 구체적인 이름, 수치, 위치는 검증 가능한 경우에만 작성할 것
+            - 추천 시 반드시 '선정 기준' 또는 '판단 근거'를 포함할 것
+            - "가능성이 높다", "일반적으로 알려져 있다" 등 모호한 표현 사용 금지
+            - 추정 기반 설명 금지
+            """
 
     else:
         return rules + """
@@ -352,7 +398,7 @@ def build_expert_role(situation, goal, template_type=None):
 """
 @st.cache_data(ttl=3600)
 
-def generate_prompt(preview_text, style, max_tokens=500):
+def generate_prompt(preview_text, style, task_type=None, max_tokens=500):
     style_instruction = get_style_instruction(style)
     reliability = get_reliability_rules()
 
@@ -377,10 +423,34 @@ def generate_prompt(preview_text, style, max_tokens=500):
     task_type = detect_task_type(preview_text, preview_text)
 
     if style != "문장형":
+
         if task_type == "정보 탐색":
-            format_block = """ ... """
+            format_block = """
+    4. 출력 형식 (Format)
+    - 사례 또는 정보 중심으로 정리
+    - 항목별로 간단하고 명확하게 구성
+    """
+
+        elif task_type == "보고서 작성":
+            format_block = """
+    4. 출력 형식 (Format)
+    - 보고서 형식으로 작성
+    - 제목, 요약, 본문 구조로 구성
+    """
+
+        elif task_type == "보도자료 작성":
+            format_block = """
+    4. 출력 형식 (Format)
+    - 보도자료 형식으로 작성
+    - 제목, 개요, 본문 포함
+    """
+
         else:
-            format_block = """ ... """
+            format_block = """
+    4. 출력 형식 (Format)
+    - 실무 문서 형식으로 작성
+    - 목적이 명확하게 드러나도록 구성
+    """
     else:
         format_block = ""
 
