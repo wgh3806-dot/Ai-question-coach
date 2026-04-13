@@ -839,6 +839,10 @@ elif ui_mode == "상세 설정 모드":
 
                             structured_result = strip_code_fence(structured_result)
 
+                            if not structured_result:
+                                st.error("구조형 프롬프트 생성에 실패했습니다.")
+                                st.stop()
+
                             # 🔥 문장형 선택 시 변환
                             if style == "문장형":
                                 result, tokens2 = convert_prompt_to_sentence(structured_result)
@@ -847,9 +851,13 @@ elif ui_mode == "상세 설정 모드":
                             else:
                                 result = structured_result
 
+                            if not result:
+                                st.error("프롬프트 생성에 실패했습니다.")
+                                st.stop()
+
                         except Exception as e:
                             st.error(f"오류 발생: {e}")
-
+                            st.stop()
 
                             # 🔥 hallucination 검증 추가
                             from prompt_engine import detect_hallucination
