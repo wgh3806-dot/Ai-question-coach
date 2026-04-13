@@ -859,91 +859,87 @@ elif ui_mode == "상세 설정 모드":
                             st.error(f"오류 발생: {e}")
                             st.stop()
 
-                            # 🔥 hallucination 검증 추가
-                            from prompt_engine import detect_hallucination
+                        # 🔥 hallucination 검증 추가
+                        from prompt_engine import detect_hallucination
 
-                            if task_type == "정보 탐색":
+                        if task_type == "정보 탐색":
 
-                                safe_prompt = result
+                            safe_prompt = result
 
-                                risk_detected = False
+                            risk_detected = False
 
-                                for _ in range(2):  # 최대 2번 재시도
-                                    check_text, check_tokens = detect_hallucination(safe_prompt)
-                                    tokens += check_tokens
+                            for _ in range(2):  # 최대 2번 재시도
+                                check_text, check_tokens = detect_hallucination(safe_prompt)
+                                tokens += check_tokens
 
-                                    if "SAFE" in check_text:
-                                        break
+                                if "SAFE" in check_text:
+                                    break
 
-                                    risk_detected = True
+                                risk_detected = True
      
-                                    # 🔥 문제 있으면 재생성
-                                    improved_preview = question_prompt + "\n\n[추가 지시]\n- 위 문제를 수정하여 더 신뢰성 높은 프롬프트로 다시 작성하라"
+                                # 🔥 문제 있으면 재생성
+                                improved_preview = question_prompt + "\n\n[추가 지시]\n- 위 문제를 수정하여 더 신뢰성 높은 프롬프트로 다시 작성하라"
 
-                                    safe_prompt, regen_tokens = generate_prompt(
-                                        improved_preview,
-                                        "구조형",
-                                        task_type=task_type
-                                    )
-                                    safe_prompt = strip_code_fence(safe_prompt)
-                                    tokens += regen_tokens
+                                safe_prompt, regen_tokens = generate_prompt(
+                                    improved_preview,
+                                    "구조형",
+                                    task_type=task_type
+                                )
+                                safe_prompt = strip_code_fence(safe_prompt)
+                                tokens += regen_tokens
 
-                                if risk_detected:
-                                    st.warning("⚠ 일부 정보는 검증이 필요하여 자동으로 재구성되었습니다")
+                            if risk_detected:
+                                st.warning("⚠ 일부 정보는 검증이 필요하여 자동으로 재구성되었습니다")
 
-                                result = safe_prompt
+                            result = safe_prompt
 
-                            # # 🔥 평가 실행
-                            eval_text, _ = evaluate_prompt(result, "구조형")
+                        # # 🔥 평가 실행
+                        eval_text, _ = evaluate_prompt(result, "구조형")
 
-                            # 🔥 점수 추출
-                            score = 0
-                            try:
-                                score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
-                                score = int(score_line)
-                                st.session_state.current_score = score
-                            except:
-                                score = 50  # fallback
+                        # 🔥 점수 추출
+                        score = 0
+                        try:
+                            score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
+                            score = int(score_line)
+                            st.session_state.current_score = score
+                        except:
+                            score = 50  # fallback
 
-                            # 🔥 점수 표시
-                            st.markdown("### 프롬프트 품질")
+                        # 🔥 점수 표시
+                        st.markdown("### 프롬프트 품질")
 
-                            st.metric("점수", f"{score} / 100")
+                        st.metric("점수", f"{score} / 100")
 
-                            # 🔥 점수 기반 추천
-                            if score < 60:
-                                st.error("⚠ 낮은 품질 → 반드시 개선하세요")
-                                st.warning("👉 자동 개선 버튼 사용 추천")
+                        # 🔥 점수 기반 추천
+                        if score < 60:
+                            st.error("⚠ 낮은 품질 → 반드시 개선하세요")
+                            st.warning("👉 자동 개선 버튼 사용 추천")
 
-                            elif score < 80:
-                                st.warning("👉 조금만 개선하면 더 좋아집니다")
+                        elif score < 80:
+                            st.warning("👉 조금만 개선하면 더 좋아집니다")
 
-                            else:
-                                st.success("✅ 바로 사용 가능한 프롬프트입니다")
+                        else:
+                            st.success("✅ 바로 사용 가능한 프롬프트입니다")
 
-                            # 🔥 평가 내용 (이해용)
-                            with st.expander("왜 이 점수인가요?"):
-                                st.write(eval_text)
+                        # 🔥 평가 내용 (이해용)
+                        with st.expander("왜 이 점수인가요?"):
+                            st.write(eval_text)
                                 
-                            # 🔥 평가 결과 저장 (여기에 추가)
-                            st.session_state.prompt_score_text = eval_text
-                            st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
-                            st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
+                        # 🔥 평가 결과 저장 (여기에 추가)
+                        st.session_state.prompt_score_text = eval_text
+                        st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
+                        st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
 
-                            add_usage(tokens)
+                        add_usage(tokens)
 
-                            # ✅ 요청 카운트 증가
-                            st.session_state.request_count += 1
+                        # ✅ 요청 카운트 증가
+                        st.session_state.request_count += 1
 
-                            st.session_state.last_prompt = result
-                            st.session_state.show_post_result = True
-                            st.session_state.history.append(result)
+                        st.session_state.last_prompt = result
+                        st.session_state.show_post_result = True
+                        st.session_state.history.append(result)
 
-                            st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
-
-                        except Exception as e:
-                            st.error(f"오류 발생: {e}")
-
+                        st.success("프롬프트 생성 완료! 아래에서 바로 실행하세요.")
         # 🔥 생성된 프롬프트 항상 표시 (여기에 추가)
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
