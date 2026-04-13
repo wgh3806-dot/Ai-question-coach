@@ -812,48 +812,52 @@ elif ui_mode == "상세 설정 모드":
                             #     question_prompt,
                             #     style
                             # )
+                            try:
+                                response = requests.post(
+                                    "https://ai-question-coaching-production.up.railway.app/generate",
+                                    json={
+                                        "preview_text": question_prompt,
+                                        "style": style
+                                    },
+                                    timeout=15
+                                )
 
-                            # response = requests.post(
-                            #     "https://ai-question-coaching-production.up.railway.app/generate",
-                            #     json={
-                            #         "preview_text": question_prompt,
-                            #         "style": style
-                            #     }
-                            # )
-
-                            # if response.status_code == 200:
-                            #     result = response.json()["result"]
-                            #     tokens = 0  # 서버에서 아직 안 주니까 임시
-                            # else:
-                            #     st.error("서버 오류 발생")
-                            #     result = ""
-                            #     tokens = 0
-                            # result = strip_code_fence(result)
+                                if response.status_code == 200:
+                                    result = response.json()["result"]
+                                    tokens = 0  # 서버에서 아직 안 주니까 임시
+                                else:
+                                    st.error("서버 오류 발생")
+                                    result = ""
+                            except Exception as e:
+                                st.error(f"서버 연결 실패: {e}")
+                                result = ""
+                                
+                            result = strip_code_fence(result)
 
                             # 🔥 로컬 GPT 직접 호출
-                            structured_result, tokens = generate_prompt(
-                                question_prompt,
-                                "구조형",
-                                task_type=task_type
-                            )
+                            # structured_result, tokens = generate_prompt(
+                            #     question_prompt,
+                            #     "구조형",
+                            #     task_type=task_type
+                            # )
 
-                            structured_result = strip_code_fence(structured_result)
+                            # structured_result = strip_code_fence(structured_result)
 
-                            if not structured_result:
+                            if not result:
                                 st.error("구조형 프롬프트 생성에 실패했습니다.")
                                 st.stop()
 
-                            # 🔥 문장형 선택 시 변환
-                            if style == "문장형":
-                                result, tokens2 = convert_prompt_to_sentence(structured_result)
-                                result = strip_code_fence(result)
-                                tokens += tokens2
-                            else:
-                                result = structured_result
+                            # # 🔥 문장형 선택 시 변환
+                            # if style == "문장형":
+                            #     result, tokens2 = convert_prompt_to_sentence(structured_result)
+                            #     result = strip_code_fence(result)
+                            #     tokens += tokens2
+                            # else:
+                            #     result = structured_result
 
-                            if not result:
-                                st.error("프롬프트 생성에 실패했습니다.")
-                                st.stop()
+                            # if not result:
+                            #     st.error("프롬프트 생성에 실패했습니다.")
+                            #     st.stop()
 
                         except Exception as e:
                             st.error(f"오류 발생: {e}")
