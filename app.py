@@ -899,11 +899,11 @@ elif ui_mode == "상세 설정 모드":
                         # 🔥 점수 추출
                         score = 0
                         try:
-                            score_line = eval_text.split("[점수]")[1].split("\n")[1].strip()
-                            score = int(score_line)
+                            match = re.search(r"\[점수\]\s*\n?\s*(\d+)", eval_text)
+                            score = int(match.group(1)) if match else 80
                             st.session_state.current_score = score
                         except:
-                            score = 50  # fallback
+                            score = 80  # fallback
 
                         # 🔥 점수 표시
                         st.markdown("### 프롬프트 품질")
@@ -1032,19 +1032,20 @@ elif ui_mode == "상세 설정 모드":
                                     if not candidates:
                                         candidates.append(base_prompt)
 
-                                    candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "구조형")
-                                    total_tokens_used += tokens_eval
+                                    for candidate_prompt in candidates:
+                                        candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "구조형")
+                                        total_tokens_used += tokens_eval
+                                    
+                                        try:
+                                            match = re.search(r"\[점수\]\s*\n?\s*(\d+)", candidate_eval_text)
+                                            candidate_score = int(match.group(1)) if match else 80
+                                        except:
+                                            candidate_score = 80
 
-                                    try:
-                                        score_line = candidate_eval_text.split("[점수]")[1].split("\n")[1].strip()
-                                        candidate_score = int(score_line)
-                                    except:
-                                        candidate_score = 50
-
-                                    if candidate_score > best_score:
-                                        best_prompt = normalize_prompt_spacing(candidate_prompt)
-                                        best_score = candidate_score
-                                        best_eval_text = candidate_eval_text
+                                        if candidate_score > best_score:
+                                            best_prompt = normalize_prompt_spacing(candidate_prompt)
+                                            best_score = candidate_score
+                                            best_eval_text = candidate_eval_text
 
                                     add_usage(total_tokens_used)
                                     st.session_state.request_count += 1
