@@ -7,7 +7,6 @@ from prompt_engine import explain_diff
 from prompt_engine import (
     init_client,
     generate_prompt,
-    evaluate_prompt,
     refine_prompt,
     parse_user_input,
     detect_task_type,
@@ -287,23 +286,23 @@ if "history" not in st.session_state:
 if "last_prompt" not in st.session_state:
     st.session_state.last_prompt = ""
     
-if "prev_score" not in st.session_state:
-    st.session_state.prev_score = None
+# if "prev_score" not in st.session_state:
+#     st.session_state.prev_score = None
 
-if "current_score" not in st.session_state:
-    st.session_state.current_score = None
+# if "current_score" not in st.session_state:
+#     st.session_state.current_score = None
     
-if "high_quality" not in st.session_state:
-    st.session_state.high_quality = False
+# if "high_quality" not in st.session_state:
+#     st.session_state.high_quality = False
 
-if "low_quality" not in st.session_state:
-    st.session_state.low_quality = False
+# if "low_quality" not in st.session_state:
+#     st.session_state.low_quality = False
 
-if "eval_result" not in st.session_state:
-    st.session_state.eval_result = ""
+# if "eval_result" not in st.session_state:
+#     st.session_state.eval_result = ""
 
-if "refine_result" not in st.session_state:
-    st.session_state.refine_result = ""
+# if "refine_result" not in st.session_state:
+#     st.session_state.refine_result = ""
 
 if "show_post_result" not in st.session_state:
     st.session_state.show_post_result = False
@@ -357,12 +356,12 @@ with st.expander("사용 방법"):
 # -------------------------------
 if ui_mode == "빠른 생성 모드":
 
-    st.markdown("## 간편 입력")
+    st.markdown("## AI에게 원하는 결과 입력")
 
     simple_input = st.text_area(
         "요청 내용을 입력하세요",
         height=150,
-        placeholder="예: 시민 대상 AI 교육 프로그램 사례 정리"
+        placeholder="예: 포항 관광 블로그 글을 쓰고 싶은데 사람들이 방문하고 싶게 만들고 싶어"
     )
 
     if st.button("프롬프트 생성", key="simple_generate"):
@@ -435,7 +434,7 @@ elif ui_mode == "상세 설정 모드":
         free_input = st.text_area(
             "편하게 입력하세요",
             height=100,
-            placeholder="예: 스마트시티 사업 관련 보도자료 써줘"
+            placeholder="예: 어떤 글을 써야 할지 모르겠는데 AI가 대신 정리해줬으면 좋겠어"
         )
 
     elif input_mode == "육하원칙 입력":
@@ -897,42 +896,42 @@ elif ui_mode == "상세 설정 모드":
 
                             result = safe_prompt
 
-                        # # 🔥 평가 실행
-                        eval_text, _ = evaluate_prompt(result, "구조형")
+                        # # # 🔥 평가 실행
+                        # eval_text, _ = evaluate_prompt(result, "구조형")
 
-                        # 🔥 점수 추출
-                        score = 0
-                        try:
-                            match = re.search(r"\[점수\][^\d]*(\d+)", eval_text)
-                            score = int(match.group(1)) if match else 85
-                            st.session_state.current_score = score
-                        except:
-                            score = 85  # fallback
+                        # # 🔥 점수 추출
+                        # score = 0
+                        # try:
+                        #     match = re.search(r"\[점수\][^\d]*(\d+)", eval_text)
+                        #     score = int(match.group(1)) if match else 85
+                        #     st.session_state.current_score = score
+                        # except:
+                        #     score = 85  # fallback
 
-                        # 🔥 점수 표시
-                        st.markdown("### 프롬프트 품질")
+                        # # 🔥 점수 표시
+                        # st.markdown("### 프롬프트 품질")
 
-                        st.metric("점수", f"{score} / 100")
+                        # st.metric("점수", f"{score} / 100")
 
-                        # 🔥 점수 기반 추천
-                        if score < 60:
-                            st.error("⚠ 낮은 품질 → 반드시 개선하세요")
-                            st.warning("👉 자동 개선 버튼 사용 추천")
+                        # # 🔥 점수 기반 추천
+                        # if score < 60:
+                        #     st.error("⚠ 낮은 품질 → 반드시 개선하세요")
+                        #     st.warning("👉 자동 개선 버튼 사용 추천")
 
-                        elif score < 80:
-                            st.warning("👉 조금만 개선하면 더 좋아집니다")
+                        # elif score < 80:
+                        #     st.warning("👉 조금만 개선하면 더 좋아집니다")
 
-                        else:
-                            st.success("✅ 바로 사용 가능한 프롬프트입니다")
+                        # else:
+                        #     st.success("✅ 바로 사용 가능한 프롬프트입니다")
 
-                        # 🔥 평가 내용 (이해용)
-                        with st.expander("왜 이 점수인가요?"):
-                            st.write(eval_text)
+                        # # 🔥 평가 내용 (이해용)
+                        # with st.expander("왜 이 점수인가요?"):
+                        #     st.write(eval_text)
                                 
                         # 🔥 평가 결과 저장 (여기에 추가)
-                        st.session_state.prompt_score_text = eval_text
-                        st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
-                        st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
+                        # st.session_state.prompt_score_text = eval_text
+                        # st.session_state.low_quality = "부족" in eval_text or "개선" in eval_text
+                        # st.session_state.high_quality = "우수" in eval_text or "완성도 높음" in eval_text
 
                         add_usage(tokens)
 
@@ -957,20 +956,19 @@ elif ui_mode == "상세 설정 모드":
 
             # 🔥 자동 개선 추천
         if ui_mode == "상세 설정 모드" and st.session_state.show_post_result:
-            if st.session_state.low_quality:
-                st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
-            refine_clicked = False
+            # if st.session_state.low_quality:
+            #     st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
+            # refine_clicked = False
                                 
             st.markdown("## STEP 3. 개선")
 
             col1, col2 = st.columns([1, 2])
 
             with col1:
-                if st.session_state.high_quality:
-                    st.caption("이미 완성도가 높습니다")
-                    refine_clicked = st.button("🚀 프롬프트 개선")
-                else:
-                    refine_clicked = st.button("🚀 프롬프트 개선")
+                # if st.session_state.high_quality:
+                #     st.caption("이미 완성도가 높습니다")
+                st.caption("조금 더 명확하거나 원하는 스타일로 바꿀 수 있습니다")
+                refine_clicked = st.button("✨ 프롬프트 더 다듬기")
 
 
             # -------------------------------
@@ -978,9 +976,13 @@ elif ui_mode == "상세 설정 모드":
             # -------------------------------
             st.markdown("### 프롬프트 개선")
 
-            feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 마케팅 느낌으로 등")
+            feedback = st.text_area("수정 요청", placeholder="예: 더 간결하게, 공공기관 문체로, 설득력 있게")
 
             if refine_clicked:
+
+                if not feedback.strip():
+                    st.warning("수정 요청을 입력해주세요")
+                    st.stop()
 
                 if st.session_state.get("refine_running"):
                     st.warning("이미 개선 작업이 진행 중입니다.")
@@ -1004,96 +1006,111 @@ elif ui_mode == "상세 설정 모드":
                             else:
                                 with st.spinner("개선 중..."):
 
-                                    st.session_state.prev_score = st.session_state.current_score
+                                    # st.session_state.prev_score = st.session_state.current_score
 
                                     base_prompt = normalize_prompt_spacing(st.session_state.last_prompt)
-                                    base_score = st.session_state.current_score or 0
+                                    # base_score = st.session_state.current_score or 0
 
-                                    best_prompt = base_prompt
-                                    best_score = base_score
-                                    best_eval_text = st.session_state.prompt_score_text or ""
+                                    # best_prompt = base_prompt
+                                    # # best_score = base_score
+                                    # best_eval_text = st.session_state.prompt_score_text or ""
 
-                                    total_tokens_used = 0
+                                    # total_tokens_used = 0
 
-                                    candidates = []
+                                    # candidates = []
 
-                                    for _ in range(2):
-                                        candidate_prompt, tokens_refine = refine_prompt(
-                                            base_prompt,
-                                            feedback,
-                                            style
-                                        )
-                                        total_tokens_used += tokens_refine
+                                    # for _ in range(2):
+                                    #     candidate_prompt, tokens_refine = refine_prompt(
+                                    #         base_prompt,
+                                    #         feedback,
+                                    #         style
+                                    #     )
+                                    #     total_tokens_used += tokens_refine
 
-                                        # 개선 결과를 저장/평가 전에 먼저 정리
-                                        candidate_prompt = strip_code_fence(candidate_prompt)
-                                        candidate_prompt = normalize_prompt_spacing(candidate_prompt)
+                                    #     # 개선 결과를 저장/평가 전에 먼저 정리
+                                    #     candidate_prompt = strip_code_fence(candidate_prompt)
+                                    #     candidate_prompt = normalize_prompt_spacing(candidate_prompt)
 
-                                        if not is_valid_structure(candidate_prompt):
-                                            continue  # 아예 버림
+                                    #     if not is_valid_structure(candidate_prompt):
+                                    #         continue  # 아예 버림
 
-                                        candidates.append(candidate_prompt)
-                                    if not candidates:
-                                        candidates.append(base_prompt)
+                                    #     candidates.append(candidate_prompt)
+                                    # if not candidates:
+                                    #     candidates.append(base_prompt)
 
-                                    for candidate_prompt in candidates:
-                                        candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "구조형")
-                                        total_tokens_used += tokens_eval
+                                    # for candidate_prompt in candidates:
+                                    #     candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "구조형")
+                                    #     total_tokens_used += tokens_eval
                                     
-                                        try:
-                                            match = re.search(r"\[점수\]\s*\n?\s*(\d+)", candidate_eval_text)
-                                            candidate_score = int(match.group(1)) if match else 80
-                                        except:
-                                            candidate_score = 80
+                                    #     try:
+                                    #         match = re.search(r"\[점수\]\s*\n?\s*(\d+)", candidate_eval_text)
+                                    #         candidate_score = int(match.group(1)) if match else 80
+                                    #     except:
+                                    #         candidate_score = 80
 
-                                        if candidate_score > best_score:
-                                            best_prompt = normalize_prompt_spacing(candidate_prompt)
-                                            best_score = candidate_score
-                                            best_eval_text = candidate_eval_text
+                                    #     if candidate_score > best_score:
+                                    #         best_prompt = normalize_prompt_spacing(candidate_prompt)
+                                    #         best_score = candidate_score
+                                    #         best_eval_text = candidate_eval_text
 
-                                    add_usage(total_tokens_used)
+                                    candidate_prompt, tokens_refine = refine_prompt(
+                                        base_prompt,
+                                        feedback,
+                                        style
+                                    )
+
+                                    candidate_prompt = strip_code_fence(candidate_prompt)
+                                    candidate_prompt = normalize_prompt_spacing(candidate_prompt)
+
+                                    if not is_valid_structure(candidate_prompt):
+                                        st.warning("구조 오류로 기존 프롬프트를 유지합니다.")
+                                    else:
+                                        st.session_state.last_prompt = candidate_prompt
+                                        st.session_state.history.append(candidate_prompt)
+                                        st.success("✔ 더 명확하게 개선되었습니다")
+                                    add_usage(tokens_refine)
                                     st.session_state.request_count += 1
 
-                                    st.markdown("### 📊 개선 결과")
+                                    st.markdown("### ✨ 개선 결과")
 
-                                    # 점수가 올랐을 때
-                                    if best_score > base_score:
-                                        best_prompt = normalize_prompt_spacing(best_prompt)
+                                    # # 점수가 올랐을 때
+                                    # if best_score > base_score:
+                                    #     best_prompt = normalize_prompt_spacing(best_prompt)
 
-                                        st.session_state.last_prompt = best_prompt
-                                        st.session_state.current_score = best_score
-                                        st.session_state.prompt_score_text = best_eval_text
-                                        st.session_state.history.append(best_prompt)
+                                    #     st.session_state.last_prompt = best_prompt
+                                    #     st.session_state.current_score = best_score
+                                    #     st.session_state.prompt_score_text = best_eval_text
+                                    #     st.session_state.history.append(best_prompt)
 
-                                        st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
+                                    #     st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
-                                        # st.markdown("### 개선된 프롬프트")
-                                        # render_prompt_box(best_prompt)
-                                        # copy_button(best_prompt, "copy_refine")
+                                    #     # st.markdown("### 개선된 프롬프트")
+                                    #     # render_prompt_box(best_prompt)
+                                    #     # copy_button(best_prompt, "copy_refine")
 
-                                    # 점수 변화 없음
-                                    elif best_score == base_score:
-                                        st.info(f"이전: {base_score}점 → 개선 후: {best_score}점 (변화 없음)")
-                                        st.warning("자동개선 결과가 기존과 동일 수준이어서 기존 프롬프트를 유지합니다.")
+                                    # # 점수 변화 없음
+                                    # elif best_score == base_score:
+                                    #     st.info(f"이전: {base_score}점 → 개선 후: {best_score}점 (변화 없음)")
+                                    #     st.warning("자동개선 결과가 기존과 동일 수준이어서 기존 프롬프트를 유지합니다.")
 
-                                        # st.markdown("### 현재 유지된 프롬프트")
-                                        best_prompt = normalize_prompt_spacing(best_prompt)
-                                        # st.markdown("### 현재 유지된 프롬프트")
-                                        # render_prompt_box(best_prompt)
-                                        # copy_button(best_prompt, "copy_refine_same")
-                                        st.session_state.last_prompt = best_prompt
+                                    #     # st.markdown("### 현재 유지된 프롬프트")
+                                    #     best_prompt = normalize_prompt_spacing(best_prompt)
+                                    #     # st.markdown("### 현재 유지된 프롬프트")
+                                    #     # render_prompt_box(best_prompt)
+                                    #     # copy_button(best_prompt, "copy_refine_same")
+                                    #     st.session_state.last_prompt = best_prompt
 
-                                    # 더 낮은 경우
-                                    else:
-                                        st.error(f"이전: {base_score}점 → 개선 후보 최고점: {best_score}점")
-                                        st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
+                                    # # 더 낮은 경우
+                                    # else:
+                                    #     st.error(f"이전: {base_score}점 → 개선 후보 최고점: {best_score}점")
+                                    #     st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
 
-                                        # st.markdown("### 현재 유지된 프롬프트")
-                                        best_prompt = normalize_prompt_spacing(best_prompt)
-                                        # st.markdown("### 현재 유지된 프롬프트")
-                                        # render_prompt_box(best_prompt)
-                                        # copy_button(best_prompt, "copy_refine_keep")
-                                        st.session_state.last_prompt = best_prompt
+                                    #     # st.markdown("### 현재 유지된 프롬프트")
+                                    #     best_prompt = normalize_prompt_spacing(best_prompt)
+                                    #     # st.markdown("### 현재 유지된 프롬프트")
+                                    #     # render_prompt_box(best_prompt)
+                                    #     # copy_button(best_prompt, "copy_refine_keep")
+                                    #     st.session_state.last_prompt = best_prompt
 
                     except Exception as e:
                         st.error(f"오류 발생: {e}")
