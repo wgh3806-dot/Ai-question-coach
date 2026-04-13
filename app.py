@@ -967,7 +967,7 @@ elif ui_mode == "상세 설정 모드":
             with col1:
                 # if st.session_state.high_quality:
                 #     st.caption("이미 완성도가 높습니다")
-                st.caption("과를 원하는 방향으로 더 다듬어보세요".replace("\n", " "))
+                st.caption("결과를 원하는 방향으로 더 다듬어보세요".replace("\n", " "))
                 refine_clicked = st.button("✨ 프롬프트 더 다듬기")
 
 
