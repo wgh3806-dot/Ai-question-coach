@@ -1062,37 +1062,44 @@ elif ui_mode == "상세 설정 모드":
 
                                         st.success(f"이전: {base_score}점 → 개선 후: {best_score}점 (+{best_score - base_score})")
 
-                                        st.markdown("### 개선된 프롬프트")
-                                        render_prompt_box(best_prompt)
-                                        copy_button(best_prompt, "copy_refine")
+                                        # st.markdown("### 개선된 프롬프트")
+                                        # render_prompt_box(best_prompt)
+                                        # copy_button(best_prompt, "copy_refine")
 
                                     # 점수 변화 없음
                                     elif best_score == base_score:
                                         st.info(f"이전: {base_score}점 → 개선 후: {best_score}점 (변화 없음)")
                                         st.warning("자동개선 결과가 기존과 동일 수준이어서 기존 프롬프트를 유지합니다.")
 
-                                        st.markdown("### 현재 유지된 프롬프트")
+                                        # st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        st.markdown("### 현재 유지된 프롬프트")
-                                        render_prompt_box(best_prompt)
-                                        copy_button(best_prompt, "copy_refine_same")
+                                        # st.markdown("### 현재 유지된 프롬프트")
+                                        # render_prompt_box(best_prompt)
+                                        # copy_button(best_prompt, "copy_refine_same")
+                                        st.session_state.last_prompt = best_prompt
 
                                     # 더 낮은 경우
                                     else:
                                         st.error(f"이전: {base_score}점 → 개선 후보 최고점: {best_score}점")
                                         st.warning("자동개선 결과가 기존보다 낮아 기존 프롬프트를 유지합니다.")
 
-                                        st.markdown("### 현재 유지된 프롬프트")
+                                        # st.markdown("### 현재 유지된 프롬프트")
                                         best_prompt = normalize_prompt_spacing(best_prompt)
-                                        st.markdown("### 현재 유지된 프롬프트")
-                                        render_prompt_box(best_prompt)
-                                        copy_button(best_prompt, "copy_refine_keep")
+                                        # st.markdown("### 현재 유지된 프롬프트")
+                                        # render_prompt_box(best_prompt)
+                                        # copy_button(best_prompt, "copy_refine_keep")
+                                        st.session_state.last_prompt = best_prompt
 
                     except Exception as e:
                         st.error(f"오류 발생: {e}")
 
                     finally:
                         st.session_state.refine_running = False
+
+                    if st.session_state.last_prompt:
+                        st.markdown("### 생성된 프롬프트")
+                        render_prompt_box(st.session_state.last_prompt)
+                        copy_button(st.session_state.last_prompt, "copy_final")       
 
             st.markdown("## STEP 4. 결과 히스토리")
 
