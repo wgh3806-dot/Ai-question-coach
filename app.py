@@ -271,8 +271,8 @@ ui_mode = st.radio(
     horizontal=True
 )
 st.markdown("""
-AI가 당신의 질문을 분석하고  
-더 정확하고 잘 작동하는 프롬프트로 개선합니다.
+복잡하게 생각하지 말고, 원하는 결과를 그대로 적어주세요  
+AI가 자동으로 정리해서 바로 사용할 수 있는 프롬프트로 만들어드립니다
 """)
 
 st.divider()
@@ -379,11 +379,11 @@ if ui_mode == "빠른 생성 모드":
                 task_type = detect_task_type(situation_part, goal_part)
 
                 # 3. mode 결정
-                active_mode = task_type or "문서 작성"
+
 
                 # 4. 프롬프트 생성용 질문 구성
                 preview_text = build_question_preview(
-                    active_mode,
+                    task_type,
                     situation_part,
                     goal_part,
                     "",
@@ -391,9 +391,9 @@ if ui_mode == "빠른 생성 모드":
                 )
                 # 3. 최종 프롬프트 생성
                 structured_result, tokens1 = generate_prompt(preview_text, "구조형",task_type=task_type)
+                structured_result = strip_code_fence(structured_result)\
+                
                 sentence_result, tokens2 = convert_prompt_to_sentence(structured_result)
-
-                structured_result = strip_code_fence(structured_result)
                 sentence_result = strip_code_fence(sentence_result)
 
                 st.markdown("### 결과")
@@ -757,15 +757,15 @@ elif ui_mode == "상세 설정 모드":
     auto_detect = detect_task_type(preview_situation, preview_goal)
 
     # 🔥 모드 기준 결정
-    active_mode = auto_detect or "문서 작성"
+    task_type = detect_task_type(preview_situation, preview_goal)
 
-    st.caption(f"적용 모드: {active_mode}")
+    st.caption(f"적용 모드: {task_type}")
 
     # -------------------------------
     # 기존 코드
     # -------------------------------
     question_prompt = build_question_preview(
-    active_mode,
+    task_type,
     preview_situation,
     preview_goal,
     preview_extra,
@@ -782,6 +782,7 @@ elif ui_mode == "상세 설정 모드":
     # -------------------------------
     if ui_mode == "상세 설정 모드":
         st.markdown("## STEP 2. 프롬프트 생성")
+        result = None
         if st.button("프롬프트 생성"):
             if not check_user_limit():
                 st.error("오늘 사용 가능한 요청 횟수를 초과했습니다.")
@@ -794,8 +795,12 @@ elif ui_mode == "상세 설정 모드":
                 else:
                     with st.spinner("생성 중..."):
                         try:
+                            task_type = detect_task_type(
+                            st.session_state.situation_input,
+                            st.session_state.goal_input
+)  
                             question_prompt  = build_question_preview(
-                                active_mode,
+                                task_type,
                                 st.session_state.situation_input,
                                 st.session_state.goal_input,
                                 extra_input,
@@ -829,25 +834,27 @@ elif ui_mode == "상세 설정 모드":
                             structured_result, tokens = generate_prompt(
                                 question_prompt,
                                 "구조형",
-                                task_type=active_mode
+                                task_type=task_type
                             )
 
                             structured_result = strip_code_fence(structured_result)
 
                             # 🔥 문장형 선택 시 변환
                             if style == "문장형":
-                                final_result, tokens2 = convert_prompt_to_sentence(structured_result)
-                                final_result = strip_code_fence(final_result)
+                                result, tokens2 = convert_prompt_to_sentence(structured_result)
+                                resultt = strip_code_fence(result)
                                 tokens += tokens2
                             else:
-                                final_result = structured_result
+                                result = structured_result
 
-                            result = final_result
+                        except Exception as e:
+                            st.error(f"오류 발생: {e}")
+
 
                             # 🔥 hallucination 검증 추가
                             from prompt_engine import detect_hallucination
 
-                            if active_mode == "정보 탐색":
+                            if task_type == "정보 탐색":
 
                                 safe_prompt = result
 
@@ -865,7 +872,11 @@ elif ui_mode == "상세 설정 모드":
                                     # 🔥 문제 있으면 재생성
                                     improved_preview = question_prompt + "\n\n[추가 지시]\n- 위 문제를 수정하여 더 신뢰성 높은 프롬프트로 다시 작성하라"
 
-                                    safe_prompt, regen_tokens = generate_prompt(improved_preview, style)
+                                    safe_prompt, regen_tokens = generate_prompt(
+                                        improved_preview,
+                                        "구조형",
+                                        task_type=task_type
+                                    )
                                     safe_prompt = strip_code_fence(safe_prompt)
                                     tokens += regen_tokens
 
@@ -875,7 +886,7 @@ elif ui_mode == "상세 설정 모드":
                                 result = safe_prompt
 
                             # # 🔥 평가 실행
-                            eval_text, _ = evaluate_prompt(result, style)
+                            eval_text, _ = evaluate_prompt(result, "구조형")
 
                             # 🔥 점수 추출
                             score = 0
@@ -929,8 +940,8 @@ elif ui_mode == "상세 설정 모드":
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
                 st.markdown("### 생성된 프롬프트")
-                render_prompt_box(final_result)
-                copy_button(final_result, "copy_gen_fixed")
+                render_prompt_box(st.session_state.last_prompt)
+                copy_button(st.session_state.last_prompt, "copy_gen_fixed")
 
             render_ai_service_links()
 
