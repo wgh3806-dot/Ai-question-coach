@@ -47,31 +47,14 @@ def build_question_preview(mode, situation, goal, extra, style):
     situation = (situation or "").strip()
     goal = (goal or "").strip()
     extra = (extra or "").strip()
-    style = (style or "간결형").strip()
+    style = (style or "구조형").strip()
     mode = (mode or "문서 작성").strip()
-
-
-    if mode == "간결 모드":
-        return f"""
-{DEFAULT_TRUST_RULES}
-
-[사용자 상황]
-{situation if situation else "-"}
-
-[사용자 목표]
-{goal if goal else "-"}
-
-[요청]
-- 위 내용을 바탕으로 AI에게 바로 사용할 수 있는 간단한 질문을 만들어라
-- 복잡한 구조 만들지 말 것
-- 빠르게 결과를 얻을 수 있도록 작성할 것
-- 사실 기반으로만 답변 유도 (추정 금지)
-""".strip()
-    
     return f"""
+다음 입력을 바탕으로 사용자가 바로 활용할 수 있는 최종 프롬프트를 설계하라.
+
 {DEFAULT_TRUST_RULES}
 
-[작업 모드]
+[작업 유형]
 {mode}
 
 [상황]
@@ -83,9 +66,32 @@ def build_question_preview(mode, situation, goal, extra, style):
 [추가 요구사항]
 {extra if extra else "-"}
 
-[출력 스타일]
-{style}
+[작성 지침]
+- 반드시 "프롬프트"만 생성할 것 (답변 금지)
+- 사용자가 AI에 그대로 복사해서 사용할 수 있어야 함
+- 역할, 목표, 조건, 출력 형식을 명확히 포함할 것
+- 초보자도 이해하고 사용할 수 있도록 작성할 것
+- 불필요한 설명 없이 바로 사용할 수 있는 형태로 작성할 것
 """.strip()
+    
+#     return f"""
+# {DEFAULT_TRUST_RULES}
+
+# [작업 모드]
+# {mode}
+
+# [상황]
+# {situation if situation else "-"}
+
+# [목표]
+# {goal if goal else "-"}
+
+# [추가 요구사항]
+# {extra if extra else "-"}
+
+# [출력 스타일]
+# {style}
+# """.strip()
 
 def normalize_prompt_spacing(text):
     text = (text or "").strip()
@@ -260,8 +266,8 @@ st.set_page_config(page_title="생성형 AI 질문 코치", page_icon="🧠", la
 
 st.title("생성형 AI 질문(프롬프트) 코치")
 ui_mode = st.radio(
-    "사용 모드",
-    ["간결 모드", "심화 모드"],
+    "프롬프트 생성 방식 선택",
+    ["빠른 생성 모드", "상세 설정 모드"],
     horizontal=True
 )
 st.markdown("""
@@ -349,7 +355,7 @@ with st.expander("사용 방법"):
 # -------------------------------
 # 입력 영역
 # -------------------------------
-if ui_mode == "간결 모드":
+if ui_mode == "빠른 생성 모드":
 
     st.markdown("## 간편 입력")
 
@@ -381,12 +387,10 @@ if ui_mode == "간결 모드":
                     situation_part,
                     goal_part,
                     "",
-                    "간결형"
+                    "구조형"
                 )
-                # 🔥 여기 추가
-                task_type = detect_task_type(situation_part, goal_part) 
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "간결구조형",task_type=task_type)
+                structured_result, tokens1 = generate_prompt(preview_text, "구조형",task_type=task_type)
                 sentence_result, tokens2 = convert_prompt_to_sentence(structured_result)
 
                 structured_result = strip_code_fence(structured_result)
@@ -413,7 +417,7 @@ if ui_mode == "간결 모드":
                 render_ai_service_links()
 
 
-elif ui_mode == "심화 모드":
+elif ui_mode == "상세 설정 모드":
 
     st.markdown("## STEP 1. 입력")
     st.info("이 시스템은 허위 정보 생성을 방지하기 위해 검증 기반 프롬프트만 생성합니다.")
@@ -692,8 +696,8 @@ elif ui_mode == "심화 모드":
     st.info("현재 입력 상태: 자유 입력 기반")
 
     style = st.radio(
-        "스타일 선택",
-        ["전문가형", "간결형", "초간결형"],
+        "프롬프트 유형 선택",
+        ["구조형", "문장형"],
         horizontal=True
     )
 
@@ -776,7 +780,7 @@ elif ui_mode == "심화 모드":
     # -------------------------------
     # 프롬프트 생성
     # -------------------------------
-    if ui_mode == "심화 모드":
+    if ui_mode == "상세 설정 모드":
         st.markdown("## STEP 2. 프롬프트 생성")
         if st.button("프롬프트 생성"):
             if not check_user_limit():
@@ -804,22 +808,41 @@ elif ui_mode == "심화 모드":
                             #     style
                             # )
 
-                            response = requests.post(
-                                "https://ai-question-coaching-production.up.railway.app/generate",
-                                json={
-                                    "preview_text": question_prompt,
-                                    "style": style
-                                }
+                            # response = requests.post(
+                            #     "https://ai-question-coaching-production.up.railway.app/generate",
+                            #     json={
+                            #         "preview_text": question_prompt,
+                            #         "style": style
+                            #     }
+                            # )
+
+                            # if response.status_code == 200:
+                            #     result = response.json()["result"]
+                            #     tokens = 0  # 서버에서 아직 안 주니까 임시
+                            # else:
+                            #     st.error("서버 오류 발생")
+                            #     result = ""
+                            #     tokens = 0
+                            # result = strip_code_fence(result)
+
+                            # 🔥 로컬 GPT 직접 호출
+                            structured_result, tokens = generate_prompt(
+                                question_prompt,
+                                "구조형",
+                                task_type=active_mode
                             )
 
-                            if response.status_code == 200:
-                                result = response.json()["result"]
-                                tokens = 0  # 서버에서 아직 안 주니까 임시
+                            structured_result = strip_code_fence(structured_result)
+
+                            # 🔥 문장형 선택 시 변환
+                            if style == "문장형":
+                                final_result, tokens2 = convert_prompt_to_sentence(structured_result)
+                                final_result = strip_code_fence(final_result)
+                                tokens += tokens2
                             else:
-                                st.error("서버 오류 발생")
-                                result = ""
-                                tokens = 0
-                            result = strip_code_fence(result)
+                                final_result = structured_result
+
+                            result = final_result
 
                             # 🔥 hallucination 검증 추가
                             from prompt_engine import detect_hallucination
@@ -852,7 +875,7 @@ elif ui_mode == "심화 모드":
                                 result = safe_prompt
 
                             # # 🔥 평가 실행
-                            eval_text, _ = evaluate_prompt(result, "전문가형")
+                            eval_text, _ = evaluate_prompt(result, style)
 
                             # 🔥 점수 추출
                             score = 0
@@ -906,16 +929,15 @@ elif ui_mode == "심화 모드":
         if st.session_state.last_prompt:
             if st.session_state.last_prompt:
                 st.markdown("### 생성된 프롬프트")
-                render_prompt_box(st.session_state.last_prompt)
-
-                copy_button(st.session_state.last_prompt, "copy_gen_fixed")
+                render_prompt_box(final_result)
+                copy_button(final_result, "copy_gen_fixed")
 
             render_ai_service_links()
 
             st.caption("※ 이 프롬프트를 AI 서비스에 입력하면 결과가 생성됩니다.")
 
             # 🔥 자동 개선 추천
-        if ui_mode == "심화 모드" and st.session_state.show_post_result:
+        if ui_mode == "상세 설정 모드" and st.session_state.show_post_result:
             if st.session_state.low_quality:
                 st.warning("👉 자동 개선 버튼을 눌러 더 나은 프롬프트로 만드세요")
             refine_clicked = False
@@ -995,7 +1017,7 @@ elif ui_mode == "심화 모드":
                                     if not candidates:
                                         candidates.append(base_prompt)
 
-                                    candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "전문가형")
+                                    candidate_eval_text, tokens_eval = evaluate_prompt(candidate_prompt, "구조형")
                                     total_tokens_used += tokens_eval
 
                                     try:
