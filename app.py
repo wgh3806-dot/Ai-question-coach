@@ -899,11 +899,11 @@ elif ui_mode == "상세 설정 모드":
                         # 🔥 점수 추출
                         score = 0
                         try:
-                            match = re.search(r"\[점수\]\s*\n?\s*(\d+)", eval_text)
-                            score = int(match.group(1)) if match else 80
+                            match = re.search(r"\[점수\][^\d]*(\d+)", eval_text)
+                            score = int(match.group(1)) if match else 85
                             st.session_state.current_score = score
                         except:
-                            score = 80  # fallback
+                            score = 85  # fallback
 
                         # 🔥 점수 표시
                         st.markdown("### 프롬프트 품질")
