@@ -842,7 +842,7 @@ elif ui_mode == "상세 설정 모드":
                             # 🔥 문장형 선택 시 변환
                             if style == "문장형":
                                 result, tokens2 = convert_prompt_to_sentence(structured_result)
-                                resultt = strip_code_fence(result)
+                                result = strip_code_fence(result)
                                 tokens += tokens2
                             else:
                                 result = structured_result
