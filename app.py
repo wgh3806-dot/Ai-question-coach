@@ -1119,9 +1119,13 @@ elif ui_mode == "상세 설정 모드":
                         st.session_state.refine_running = False
 
                     if st.session_state.last_prompt:
-                        st.markdown("### 생성된 프롬프트")
+                        st.markdown("### 개선된 프롬프트")
                         render_prompt_box(st.session_state.last_prompt)
-                        copy_button(st.session_state.last_prompt, "copy_final")       
+                        copy_button(st.session_state.last_prompt, "copy_final")  
+
+                        st.divider()
+                        st.caption("복사한 프롬프트를 생성형 AI 서비스에 바로 붙여넣어 사용해보세요.")
+                        render_ai_service_links()     
 
             st.markdown("## STEP 4. 결과 히스토리")
 
