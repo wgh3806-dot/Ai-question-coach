@@ -1067,14 +1067,24 @@ elif ui_mode == "상세 설정 모드":
                                     )
 
                                     candidate_prompt = strip_code_fence(candidate_prompt)
-                                    candidate_prompt = normalize_prompt_spacing(candidate_prompt)
+                                    if style == "구조형":
+                                        candidate_prompt = normalize_prompt_spacing(candidate_prompt)
 
-                                    if not is_valid_structure(candidate_prompt):
-                                        st.warning("구조 오류로 기존 프롬프트를 유지합니다.")
+                                    if style == "구조형":
+                                        if not is_valid_structure(candidate_prompt):
+                                            st.warning("구조 오류로 기존 프롬프트를 유지합니다.")
+                                        else:
+                                            st.session_state.last_prompt = candidate_prompt
+                                            st.session_state.history.append(candidate_prompt)
+                                            st.success("✔ 더 명확하게 개선되었습니다")
                                     else:
-                                        st.session_state.last_prompt = candidate_prompt
-                                        st.session_state.history.append(candidate_prompt)
-                                        st.success("✔ 더 명확하게 개선되었습니다")
+                                        # 문장형은 번호 구조 검사 대신 최소 유효성만 확인
+                                        if not candidate_prompt or len(candidate_prompt.strip()) < 20:
+                                            st.warning("문장형 프롬프트 생성 결과가 비정상이라 기존 프롬프트를 유지합니다.")
+                                        else:
+                                            st.session_state.last_prompt = candidate_prompt
+                                            st.session_state.history.append(candidate_prompt)
+                                            st.success("✔ 더 명확하게 개선되었습니다")
                                     add_usage(tokens_refine)
                                     st.session_state.request_count += 1
 
