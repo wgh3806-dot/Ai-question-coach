@@ -389,7 +389,7 @@ if ui_mode == "빠른 생성 모드":
                     "구조형"
                 )
                 # 3. 최종 프롬프트 생성
-                structured_result, tokens1 = generate_prompt(preview_text, "구조형",task_type=task_type)
+                structured_result, tokens1 = generate_prompt(preview_text, "구조형", task_type=task_type)
                 structured_result = strip_code_fence(structured_result)\
                 
                 sentence_result, tokens2 = convert_prompt_to_sentence(structured_result)
@@ -833,6 +833,11 @@ elif ui_mode == "상세 설정 모드":
                                 
                             result = strip_code_fence(result)
 
+                            if style == "문장형":
+                                result, tokens2 = convert_prompt_to_sentence(result)
+                                result = strip_code_fence(result)
+                                tokens += tokens2
+
                             # 🔥 로컬 GPT 직접 호출
                             # structured_result, tokens = generate_prompt(
                             #     question_prompt,
@@ -1009,6 +1014,8 @@ elif ui_mode == "상세 설정 모드":
                                     # st.session_state.prev_score = st.session_state.current_score
 
                                     base_prompt = normalize_prompt_spacing(st.session_state.last_prompt)
+                                    if style == "문장형":
+                                        base_prompt, _ = convert_prompt_to_sentence(base_prompt)
                                     # base_score = st.session_state.current_score or 0
 
                                     # best_prompt = base_prompt
