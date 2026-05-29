@@ -793,6 +793,8 @@ elif ui_mode == "상세 설정 모드":
                     st.error("현재 사용량이 많아 잠시 후 다시 시도해주세요.")
                 else:
                     with st.spinner("생성 중..."):
+                        result = ""
+                        tokens = 0
                         try:
                             task_type = detect_task_type(
                             st.session_state.situation_input,
@@ -822,14 +824,16 @@ elif ui_mode == "상세 설정 모드":
                                 )
 
                                 if response.status_code == 200:
-                                    result = response.json()["result"]
-                                    tokens = 0  # 서버에서 아직 안 주니까 임시
+                                    data = response.json()
+                                    result = data.get("result", "")
+                                    tokens = data.get("tokens", 0)
                                 else:
-                                    st.error("서버 오류 발생")
-                                    result = ""
+                                    st.error(f"서버 오류 발생: {response.status_code}")
+                                    st.write(response.text)
+                                    st.stop()
                             except Exception as e:
                                 st.error(f"서버 연결 실패: {e}")
-                                result = ""
+                                st.stop()
                                 
                             result = strip_code_fence(result)
 
