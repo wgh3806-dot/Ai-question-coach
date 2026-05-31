@@ -264,6 +264,50 @@ def render_ai_service_links():
 st.set_page_config(page_title="생성형 AI 질문 코치", page_icon="🧠", layout="centered")
 
 st.title("생성형 AI 질문(프롬프트) 코치")
+
+if "show_guide_popup" not in st.session_state:
+    st.session_state.show_guide_popup = True
+
+if st.session_state.show_guide_popup:
+    st.markdown("""
+    <div style="
+        border: 1px solid #dbeafe;
+        background-color: #eff6ff;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 18px;
+        color: #1e3a8a;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    ">
+        <h3 style="margin-top:0;">👋 생성형 AI 질문 코치 사용방법</h3>
+
+        <p>
+        이 프로그램은 원하는 내용을 입력하면 AI가 더 좋은 질문,
+        즉 <b>프롬프트</b>로 바꿔주는 도구입니다.
+        </p>
+
+        <p><b>빠른 생성 모드</b><br>
+        간단히 원하는 내용을 입력하면 바로 프롬프트를 만들어줍니다.<br>
+        처음 사용하는 분께 추천합니다.</p>
+
+        <p><b>상세 설정 모드</b><br>
+        상황, 목표, 추가 요구사항을 나눠 입력할 수 있습니다.<br>
+        보고서, 공문, 보도자료처럼 결과를 더 정확히 만들고 싶을 때 사용합니다.</p>
+
+        <hr style="border:none; border-top:1px solid #bfdbfe;">
+
+        <p><b>사용 순서</b><br>
+        1. 원하는 모드를 선택합니다.<br>
+        2. 만들고 싶은 내용을 입력합니다.<br>
+        3. 프롬프트 생성 버튼을 누릅니다.<br>
+        4. 생성된 프롬프트를 복사해 ChatGPT, Gemini, Claude 등에 붙여넣습니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("사용방법 닫기"):
+        st.session_state.show_guide_popup = False
+        st.rerun()
+
 ui_mode = st.radio(
     "프롬프트 생성 방식 선택",
     ["빠른 생성 모드", "상세 설정 모드"],
