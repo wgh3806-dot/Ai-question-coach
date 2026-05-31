@@ -265,48 +265,52 @@ st.set_page_config(page_title="생성형 AI 질문 코치", page_icon="🧠", la
 
 st.title("생성형 AI 질문(프롬프트) 코치")
 
-if "show_guide_popup" not in st.session_state:
-    st.session_state.show_guide_popup = True
+# -------------------------------
+# 첫 접속 사용방법 팝업
+# -------------------------------
+if "guide_popup_closed" not in st.session_state:
+    st.session_state.guide_popup_closed = False
 
-if st.session_state.show_guide_popup:
+
+@st.dialog("👋 처음 사용하시나요? 이렇게 이용해보세요")
+def show_guide_popup():
     st.markdown("""
-    <div style="
-        border: 1px solid #dbeafe;
-        background-color: #eff6ff;
-        border-radius: 14px;
-        padding: 18px;
-        margin-bottom: 18px;
-        color: #1e3a8a;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-    ">
-        <h3 style="margin-top:0;">👋 생성형 AI 질문 코치 사용방법</h3>
+    이 프로그램은 원하는 내용을 입력하면  
+    AI가 바로 이해하기 쉬운 **좋은 질문(프롬프트)** 으로 바꿔주는 도구입니다.
 
-        <p>
-        이 프로그램은 원하는 내용을 입력하면 AI가 더 좋은 질문,
-        즉 <b>프롬프트</b>로 바꿔주는 도구입니다.
-        </p>
+    ### 어떤 모드를 선택하면 되나요?
+                
+    ** 빠른 생성 모드 **
+    - 무엇을 써야 할지만 편하게 입력하면 됩니다.
+    - AI가 알아서 상황과 목표를 정리해 프롬프트를 만들어줍니다.
+    - 처음 사용하는 분, 간단한 글쓰기·정리·아이디어 요청에 추천합니다.
+                
+    예시  
+    `직원들이 이해하기 쉽게 AI 교육 안내문을 만들고 싶어`
 
-        <p><b>빠른 생성 모드</b><br>
-        간단히 원하는 내용을 입력하면 바로 프롬프트를 만들어줍니다.<br>
-        처음 사용하는 분께 추천합니다.</p>
+     **상세 설정 모드** 
+    - 상황, 목표, 추가 요구사항을 나눠서 입력할 수 있습니다.
+    - 보고서, 공문, 보도자료, 계획서처럼 더 정확한 결과가 필요할 때 사용합니다.
+    - 문체, 분량, 대상, 포함할 내용 등을 직접 정하고 싶을 때 추천합니다.
+                
+    예시  
+    `상황: 전 직원 대상 AI 교육을 안내해야 함`  
+    `목표: 교육 참여를 높일 수 있는 안내문 작성`  
+    `추가 요구사항: 공공기관 문체, 간결하게, 날짜와 장소 포함`
 
-        <p><b>상세 설정 모드</b><br>
-        상황, 목표, 추가 요구사항을 나눠 입력할 수 있습니다.<br>
-        보고서, 공문, 보도자료처럼 결과를 더 정확히 만들고 싶을 때 사용합니다.</p>
+    ### 사용 순서
+    1. 원하는 모드를 선택합니다.
+    2. 만들고 싶은 내용을 입력합니다.
+    3. **프롬프트 생성** 버튼을 누릅니다.
+    4. 생성된 프롬프트를 복사해 ChatGPT, Gemini, Claude 등에 붙여넣습니다.
+    """)
 
-        <hr style="border:none; border-top:1px solid #bfdbfe;">
-
-        <p><b>사용 순서</b><br>
-        1. 원하는 모드를 선택합니다.<br>
-        2. 만들고 싶은 내용을 입력합니다.<br>
-        3. 프롬프트 생성 버튼을 누릅니다.<br>
-        4. 생성된 프롬프트를 복사해 ChatGPT, Gemini, Claude 등에 붙여넣습니다.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("사용방법 닫기"):
-        st.session_state.show_guide_popup = False
+    if st.button("확인하고 시작하기", use_container_width=True):
+        st.session_state.guide_popup_closed = True
         st.rerun()
+
+if not st.session_state.guide_popup_closed:
+    show_guide_popup()
 
 ui_mode = st.radio(
     "프롬프트 생성 방식 선택",
@@ -387,7 +391,7 @@ import os
 # api_key = st.secrets["OPENAI_API_KEY"]
 # init_client(api_key)
 
-with st.expander("사용 방법"):
+with st.expander("자세한 사용 방법 다시 보기"):
     st.markdown("""
 1. 자유 입력으로 요청을 작성합니다.  
 2. 자동 분석으로 상황과 목표를 정리합니다.  
