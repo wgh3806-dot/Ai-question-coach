@@ -3,6 +3,8 @@ import html
 import re
 import requests
 import streamlit.components.v1 as components
+from streamlit_js_eval import streamlit_js_eval
+from datetime import datetime
 from prompt_engine import explain_diff
 from prompt_engine import (
     init_client,
@@ -268,6 +270,13 @@ st.title("생성형 AI 질문(프롬프트) 코치")
 # -------------------------------
 # 첫 접속 사용방법 팝업
 # -------------------------------
+today = datetime.now().strftime("%Y-%m-%d")
+
+hide_guide_date = streamlit_js_eval(
+    js_expressions="localStorage.getItem('hide_guide_popup_date')",
+    key="get_hide_guide_popup_date"
+)
+
 if "guide_popup_closed" not in st.session_state:
     st.session_state.guide_popup_closed = False
 
@@ -305,11 +314,19 @@ def show_guide_popup():
     4. 생성된 프롬프트를 복사해 ChatGPT, Gemini, Claude 등에 붙여넣습니다.
     """)
 
+    do_not_show_today = st.checkbox("오늘 하루 동안 이 안내창 표시하지 않기")
+
     if st.button("확인하고 시작하기", use_container_width=True):
+        if do_not_show_today:
+            streamlit_js_eval(
+                js_expressions=f"localStorage.setItem('hide_guide_popup_date', '{today}')",
+                key="set_hide_guide_popup_date"
+            )
         st.session_state.guide_popup_closed = True
         st.rerun()
 
-if not st.session_state.guide_popup_closed:
+
+if hide_guide_date != today and not st.session_state.guide_popup_closed:
     show_guide_popup()
 
 ui_mode = st.radio(
