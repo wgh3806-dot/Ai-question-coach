@@ -272,7 +272,7 @@ if "guide_popup_closed" not in st.session_state:
     st.session_state.guide_popup_closed = False
 
 
-@st.dialog("👋 처음 사용하시나요? 이렇게 이용해보세요")
+@st.dialog("👋 처음 사용자를 위한 이용 안내", width="medium")
 def show_guide_popup():
     st.markdown("""
     이 프로그램은 원하는 내용을 입력하면  
