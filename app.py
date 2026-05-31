@@ -272,7 +272,7 @@ if "guide_popup_closed" not in st.session_state:
     st.session_state.guide_popup_closed = False
 
 
-@st.dialog("👋 처음 사용자를 위한 이용 안내", width="medium")
+@st.dialog("👋 처음 사용하시나요? 이렇게 이용해보세요", width="medium")
 def show_guide_popup():
     st.markdown("""
     이 프로그램은 원하는 내용을 입력하면  
@@ -280,7 +280,7 @@ def show_guide_popup():
 
     ### 어떤 모드를 선택하면 되나요?
                 
-    ** 빠른 생성 모드 **
+    **빠른 생성 모드**
     - 무엇을 써야 할지만 편하게 입력하면 됩니다.
     - AI가 알아서 상황과 목표를 정리해 프롬프트를 만들어줍니다.
     - 처음 사용하는 분, 간단한 글쓰기·정리·아이디어 요청에 추천합니다.
